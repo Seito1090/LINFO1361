@@ -12,6 +12,37 @@ def show_grid(grid): # Function to display the grid
         print("".join(row))
     print("\n")
 
+def check_deerper(grid, position, direction):
+    # Checks if there is a fruit to be eaten in the direction of the move and how much we can move in that direction
+    # Returns the furthest we can go in that direction and the number of fruits in that direction
+    # Grid is the grid in which we are moving : 2D array
+    # Position is the position of the PacMan in the grid : tuple (x, y)
+    # Direction is the direction in which we want to move : string
+    # Returns a tuple (int, int) : (furthest, fruits)
+    furthest = 0
+    fruits = 0
+    if direction == "Up":
+        while position[0] - furthest > 0 and grid[position[0] - furthest-1][position[1]] != '#':
+            if grid[position[0] - furthest][position[1]] == 'F':
+                fruits += 1
+            furthest += 1
+    elif direction == "Down":
+        while position[0] + furthest < len(grid)-1 and grid[position[0] + furthest+1][position[1]] != '#':
+            if grid[position[0] + furthest][position[1]] == 'F':
+                fruits += 1
+            furthest += 1
+    elif direction == "Left":
+        while position[1] - furthest > 0 and grid[position[0]][position[1] - furthest-1] != '#':
+            if grid[position[0]][position[1] - furthest] == 'F':
+                fruits += 1
+            furthest += 1
+    elif direction == "Right":
+        while position[1] + furthest < len(grid[0])-1 and grid[position[0]][position[1] + furthest+1] != '#':
+            if grid[position[0]][position[1] + furthest] == 'F':
+                fruits += 1
+            furthest += 1
+    return (furthest, fruits)
+
 #################
 # Problem class #
 #################
@@ -20,6 +51,7 @@ class Pacman(Problem):
 
     def actions(self, state):
         possible_actions = []
+        action = ""
         # Define the possible actions for a given state (state here represents the grid in which PacMan moves)
         # Detect where the PacMan is in the grid
         position = (0, 0)
@@ -29,21 +61,27 @@ class Pacman(Problem):
                 break
         # Check for possible moves
         # Up
-        if position[0] > 0 and state.grid[position[0] - 1][position[1]] != 'W':
-            possible_actions.append('Up')   
+        if position[0] > 0 and state.grid[position[0] - 1][position[1]] != '#':
+            action = check_deerper(state.grid, position, "Up")
+            possible_actions.append((action, "Up"))
         # Down
-        if position[0] < state.shape[0] - 1 and state.grid[position[0] + 1][position[1]] != 'W':
-            possible_actions.append('Down')
+        if position[0] < state.shape[0] - 1 and state.grid[position[0] + 1][position[1]] != '#':
+            action = check_deerper(state.grid, position, "Down")
+            possible_actions.append((action, "Down"))
         # Left
-        if position[1] > 0 and state.grid[position[0]][position[1] - 1] != 'W':
-            possible_actions.append('Left')
+        if position[1] > 0 and state.grid[position[0]][position[1] - 1] != '#':
+            action = check_deerper(state.grid, position, "Left")
+            possible_actions.append((action, "Left"))
         # Right
-        if position[1] < state.shape[1] - 1 and state.grid[position[0]][position[1] + 1] != 'W':
-            possible_actions.append('Right') 
+        if position[1] < state.shape[1] - 1 and state.grid[position[0]][position[1] + 1] != '#':
+            action = check_deerper(state.grid, position, "Right")
+            possible_actions.append((action, "Right"))
         # Eat fruit
+        # If there's a fruit to be eaten, it can only be in the possible actions already found
+        
         print("Possible actions: ", possible_actions)
-        show_grid(state.grid)
-        pass
+        # Return the list of possible actions
+        return possible_actions
 
     def result(self, state, action):
         # Apply the action to the state and return the new state
