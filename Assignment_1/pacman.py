@@ -6,6 +6,11 @@ import time
 import sys
 from search import *
 
+#Personal functions 
+def show_grid(grid): # Function to display the grid
+    for row in grid:
+        print("".join(row))
+    print("\n")
 
 #################
 # Problem class #
@@ -13,12 +18,32 @@ from search import *
 dico = {}
 class Pacman(Problem):
 
-
-
     def actions(self, state):
-        # Define the possible actions for a given state
+        possible_actions = []
+        # Define the possible actions for a given state (state here represents the grid in which PacMan moves)
+        # Detect where the PacMan is in the grid
+        position = (0, 0)
+        for i, row in enumerate(state.grid):
+            if 'P' in row:
+                position = (i, row.index('P'))
+                break
+        # Check for possible moves
+        # Up
+        if position[0] > 0 and state.grid[position[0] - 1][position[1]] != 'W':
+            possible_actions.append('Up')   
+        # Down
+        if position[0] < state.shape[0] - 1 and state.grid[position[0] + 1][position[1]] != 'W':
+            possible_actions.append('Down')
+        # Left
+        if position[1] > 0 and state.grid[position[0]][position[1] - 1] != 'W':
+            possible_actions.append('Left')
+        # Right
+        if position[1] < state.shape[1] - 1 and state.grid[position[0]][position[1] + 1] != 'W':
+            possible_actions.append('Right') 
+        # Eat fruit
+        print("Possible actions: ", possible_actions)
+        show_grid(state.grid)
         pass
-
 
     def result(self, state, action):
         # Apply the action to the state and return the new state
@@ -26,7 +51,10 @@ class Pacman(Problem):
         
     def goal_test(self, state):
     	#check for goal state
-    	pass
+        for row in state.grid:
+            if 'F' in row:
+                return False
+        return True
 
 
 
