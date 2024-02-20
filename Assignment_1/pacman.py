@@ -90,7 +90,7 @@ class Pacman(Problem):
         # Replace the PacMan by a empty space
         new_grid = [list(row) for row in state.grid]
         new_grid[position[0]][position[1]] = '.'
-        # Move the PacMan in the direction of the action
+        # Move the PacMan in the direction of the action f
         if action[2] == "Up":
             new_grid[position[0] - 1][position[1]] = 'P'
         elif action[2] == "Down":
