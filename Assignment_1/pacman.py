@@ -41,7 +41,7 @@ def check_deerper(grid, position, direction):
             if grid[position[0]][position[1] + furthest] == 'F':
                 fruits += 1
             furthest += 1
-    return (furthest, fruits)
+    return (furthest, fruits, direction)
 
 def get_PacMan_Position(grid):
     # Returns the position of the PacMan in the grid
@@ -65,21 +65,18 @@ class Pacman(Problem):
         # Check for possible moves
         # Up
         if position[0] > 0 and state.grid[position[0] - 1][position[1]] != '#':
-            action = check_deerper(state.grid, position, "Up")
-            possible_actions.append((action, "Up"))
+            possible_actions.append(check_deerper(state.grid, position, "Up"))
         # Down
         if position[0] < state.shape[0] - 1 and state.grid[position[0] + 1][position[1]] != '#':
-            action = check_deerper(state.grid, position, "Down")
-            possible_actions.append((action, "Down"))
+            possible_actions.append(check_deerper(state.grid, position, "Down"))
         # Left
         if position[1] > 0 and state.grid[position[0]][position[1] - 1] != '#':
-            action = check_deerper(state.grid, position, "Left")
-            possible_actions.append((action, "Left"))
+            possible_actions.append(check_deerper(state.grid, position, "Left"))
         # Right
         if position[1] < state.shape[1] - 1 and state.grid[position[0]][position[1] + 1] != '#':
-            action = check_deerper(state.grid, position, "Right")
-            possible_actions.append((action, "Right"))
+            possible_actions.append(check_deerper(state.grid, position, "Right"))
         print("Possible actions: ", possible_actions)
+        show_grid(state.grid)
         # Return the list of possible actions
         return possible_actions
 
@@ -94,18 +91,14 @@ class Pacman(Problem):
         new_grid = [list(row) for row in state.grid]
         new_grid[position[0]][position[1]] = '.'
         # Move the PacMan in the direction of the action
-        if action[1] == "Up":
-            for i in range(action[0][0]):
-                new_grid[position[0] - i][position[1]] = 'P'
-        elif action[1] == "Down":
-            for i in range(action[0][0]):
-                new_grid[position[0] + i][position[1]] = 'P'
-        elif action[1] == "Left":
-            for i in range(action[0][0]):
-                new_grid[position[0]][position[1] - i] = 'P'
-        elif action[1] == "Right":
-            for i in range(action[0][0]):
-                new_grid[position[0]][position[1] + i] = 'P'
+        if action[2] == "Up":
+            new_grid[position[0] - 1][position[1]] = 'P'
+        elif action[2] == "Down":
+            new_grid[position[0] + 1][position[1]] = 'P'
+        elif action[2] == "Left":
+            new_grid[position[0]][position[1] - 1] = 'P'
+        elif action[2] == "Right":
+            new_grid[position[0]][position[1] + 1] = 'P'
 
         return State(state.shape, tuple(map(tuple, new_grid)), state.answer, action[1])
         
