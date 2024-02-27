@@ -50,6 +50,111 @@ def get_PacMan_Position(grid):
             return (i, row.index('P'))
     return (-1, -1)
 
+class binary_board():
+    singleton_created = None
+    import numpy as np
+    def __init__(self, state):
+        if binary_board.singleton_created == None:
+            binary_board.singleton_created = self
+            self.fruits = np.zeros((state.shape[0], state.shape[1]),dtype=int)
+            self.fruits[state.grid == 'F'] = 1
+            self.pacman = np.zeros((state.shape[0], state.shape[1]),dtype=int)
+            self.pacman[state.grid == 'P'] = 1
+            self.walls = np.zeros((state.shape[0], state.shape[1]),dtype=int)
+            self.walls[state.grid == '#'] = 1
+            self.grid = np.zeros((state.shape[0], state.shape[1]),dtype=int)
+            self.grid[state.grid == '.'] = 1
+        else:
+            return binary_board.singleton_created
+    
+    def __str__(self):
+        table = ""
+        for i in range(self.grid.shape[0]):
+            for j in range(self.grid.shape[1]):
+                if self.fruits[i,j] == 1:
+                    table += "F"
+                elif self.pacman[i,j] == 1:
+                    table += "P"
+                elif self.walls[i,j] == 1:
+                    table += "#"
+                else:
+                    table += "."
+            table += "\n"
+        return table
+    
+    def __tuple__(self):
+        table = []
+        for i in range(self.grid.shape[0]):
+            subtable = []
+            for j in range(self.grid.shape[1]):
+                if self.fruits[i,j] == 1:
+                    subtable.append("F")
+                elif self.pacman[i,j] == 1:
+                    subtable.append("P")
+                elif self.walls[i,j] == 1:
+                    subtable.append("#")
+                else:
+                    subtable.append(".")
+            table.append(subtable)
+        return tuple(table)
+
+    def update(self, position, new_pos):
+        self.pacman[position] = 0
+        self.pacman[new_pos] = 1
+        return tuple(self)
+
+    def explore_direction(self, direction_vec, position):
+        type_of_next = "wall"
+        try:
+            while self.grid[position[0] + direction_vec[0], position[1] + direction_vec[1]] == 1:
+                position = (position[0] + direction_vec[0], position[1] + direction_vec[1])
+            type_of_next = "fruit" if self.fruits[position[0] + direction_vec[0], position[1] + direction_vec[1]] == 1 else "wall"
+        except:
+            pass
+        return (type_of_next,position)
+
+
+
+def is_valid_pos(state, pos):
+    return 0 <= pos[0] < state.shape[0] and 0 <= pos[1] < state.shape[1] and state.grid[pos[0]][pos[1]] != "#"
+
+def check_cross(state, pos):
+    """Returns the value of each of the 4 movement directions, deppending if there is a wall or a fruit
+        Returns : (up, down, left, right)
+        Wall = -1
+        Fruit = 1
+        Empty = 0
+    """
+    up      = (pos[0], pos[1] + 1) if 0 <= pos[1] + 1 < state.shape[1] else None
+    down    = (pos[0], pos[1] - 1) if 0 <= pos[1] - 1 < state.shape[1] else None
+    left    = (pos[0] - 1, pos[1]) if 0 <= pos[0] - 1 < state.shape[0] else None
+    right   = (pos[0] + 1, pos[1]) if 0 <= pos[0] + 1 < state.shape[0] else None
+
+    check = lambda xy: -1 if xy==None else (state.grid[xy[0]][xy[1]] == "F") * 1 + (state.grid[xy[0]][xy[1]] == "#") * -1
+
+    return (check(up), check(down), check(left), check(right))
+
+def update_pos(grid, pos, new_pos):
+    grid[pos[0]][pos[1]] = "."
+    grid[new_pos[0]][new_pos[1]] = "P"
+    dico[pos] = new_pos # Update the dico with the new position of the PacMan
+    return grid
+
+def new_result(self,state, action):
+    # Get the position of the PacMan
+    position = get_PacMan_Position(state.grid)
+    # Generate the new grid
+    new_grid = [list(row) for row in state.grid]
+    # Select the action to be performed
+    action = {"Up": (-1,0), "Down": (1,0), "Left": (0,-1), "Right": (0,1)}[action[2]]
+    # Compute the new position
+    new_pos = (position[0] + action[0], position[1] + action[1])
+    # Update the grid if the new position is valid
+    if is_valid_pos(state, new_pos):
+        new_grid = update_pos(new_grid, position, new_pos)
+    # Return the new state
+    return State(state.shape, tuple(map(tuple, new_grid)), state.answer, action[1])
+
 #################
 # Problem class #
 #################
@@ -78,12 +183,13 @@ class Pacman(Problem):
         print("Possible actions: ", possible_actions)
         show_grid(state.grid)
         # Return the list of possible actions
+
         return possible_actions
 
     def result(self, state, action):
         # Apply the action to the state and return the new state
         # Action is a peculiar tuple ((int, int), string) : (furthest, fruits), direction
-
+        return new_result(self,state, action)
         # Get the position of the PacMan
         position = get_PacMan_Position(state.grid)
 
