@@ -185,14 +185,37 @@ def new_result(self,state, action):
     # Generate the new grid
     new_grid = [list(row) for row in state.grid]
     # Select the action to be performed
-    action = {"Up": (-1,0), "Down": (1,0), "Left": (0,-1), "Right": (0,1)}[action[2]]
+    action_do = {"Up": (-1,0), "Down": (1,0), "Left": (0,-1), "Right": (0,1)}[action[2]]
     # Compute the new position
-    new_pos = (position[0] + action[0], position[1] + action[1])
+    new_pos = (position[0] + action_do[0], position[1] + action_do[1])
     # Update the grid if the new position is valid
     if is_valid_pos(state, new_pos):
         new_grid = update_pos(new_grid, position, new_pos)
     # Return the new state
-    return State(state.shape, tuple(map(tuple, new_grid)), state.answer, action[1])
+    return State(state.shape, tuple(map(tuple, new_grid)), state.answer, action[2])
+
+def arrow_explore(state, pos:tuple, dir:tuple):
+    # vertical | horizontal
+    off_3 = (pos[0], pos[1] + dir[1] + 1) if dir[1] != 0 else (pos[0] + dir[0] + 1, pos[1]) # point
+
+    distance_max = 0
+    distance_close = 0
+    fruit_offset = None
+    while is_valid_pos(state, off_3):
+        off_1 = (pos[0] - 1, pos[1] + dir[1]) if dir[1] != 0 else (pos[0] + dir[0], pos[1] + 1) # left
+        off_2 = (pos[0] + 1, pos[1] + dir[1]) if dir[1] != 0 else (pos[0] - dir[0], pos[1] - 1) # right
+        off_3 = (pos[0], pos[1] + dir[1] + 1) if dir[1] != 0 else (pos[0] + dir[0] + 1, pos[1]) # point
+        for xy in [off_1, off_2, off_3]:
+            if is_valid_pos(state, xy): # TODO: BUG ?
+                if state.grid[xy[0]][xy[1]] == "F":
+                    fruit_offset = xy
+        distance_close += 1  # TODO: check if the distance is correct
+        distance_max += 1 # TODO : add checks
+        dir = (dir[0] + (dir[0]!=0), dir[1] + (dir[1]!=0))
+    
+    return (distance_close, distance_max, fruit_offset)
+
+
 
 #################
 # Problem class #
