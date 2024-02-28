@@ -114,6 +114,45 @@ class binary_board():
         return (type_of_next,position)
 
 
+def virtual_explore(state, pos:tuple, dir:tuple):
+    """
+    Function to look in a cross shape in a direction, if there are walls, when do they stop, if there are fruits, 
+    how many and how far you can go
+    If there is a fruit within the path, then the function returns the direction of the fruit and the distance to it
+    """
+    enclosement_distance = 0
+    enclosement_continue = True
+
+    fruit_count = 0
+    fruit_dir = None
+    fruit_distance = -1
+
+    max_distance = 0
+    if is_valid_pos(state, (pos[0] + dir[0], pos[1] + dir[1])):
+        while state.grid[pos[0] + dir[0], pos[1] + dir[1]] == 1:
+            #update the position
+            pos = (pos[0] + dir[0], pos[1] + dir[1])
+            #update the max distance
+            max_distance += 1
+            #check if the next position is a wall or a fruit or the edge of the map
+            cross_test = check_cross(state, pos)
+            #if the next position is a wall, then we check if the enclosement is still going on (BUG: if 2 walls in zigzag, then it will not work properly)
+            if enclosement_continue:
+                enclosement_distance += any(cross_test == -1)
+            else:
+                enclosement_continue = False
+            #if the next position is a fruit, then we update the fruit count and the direction and distance to the fruit
+            if any(cross_test==1):
+                fruit_count += 1
+                #if the fruit is the first one, then we update the direction and the distance
+                if fruit_dir == None:
+                    fruit_dir = dir
+                    fruit_distance = max_distance
+            #if the next position is a wall, then we stop the loop
+            if not is_valid_pos(state, (pos[0] + dir[0], pos[1] + dir[1])):
+                break
+    return (enclosement_distance,max_distance, fruit_count, fruit_dir, fruit_distance)
+        
 
 def is_valid_pos(state, pos):
     return 0 <= pos[0] < state.shape[0] and 0 <= pos[1] < state.shape[1] and state.grid[pos[0]][pos[1]] != "#"
