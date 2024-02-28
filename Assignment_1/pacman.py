@@ -179,7 +179,7 @@ def update_pos(grid, pos, new_pos):
     dico[pos] = new_pos # Update the dico with the new position of the PacMan
     return grid
 
-def new_result(self,state, action):
+def new_old_result(self,state, action):
     # Get the position of the PacMan
     position = get_PacMan_Position(state.grid)
     # Generate the new grid
@@ -193,6 +193,7 @@ def new_result(self,state, action):
         new_grid = update_pos(new_grid, position, new_pos)
     # Return the new state
     return State(state.shape, tuple(map(tuple, new_grid)), state.answer, action[2])
+
 
 def arrow_explore(state, pos:tuple, dir:tuple):
     # vertical | horizontal
@@ -217,6 +218,58 @@ def arrow_explore(state, pos:tuple, dir:tuple):
 
 
 
+
+########################################################################################
+
+passed_table =[None]
+
+
+def print_table(table):
+    for row in table:
+        print(''.join(f"{element:2}" for element in row))
+    print("\n")
+
+def init_table(state):
+    table = [[0 for _ in range(state.shape[1]+1)] for _ in range(state.shape[0]+1)]
+    for i in range(state.shape[0]+1):
+        for j in range(state.shape[1]+1):
+            if not is_valid_pos(state, (i,j)):
+                table[i][j] = -1
+            elif state.grid[i][j] == "F":
+                table[i][j] = 1
+    return table
+
+def new_action_table(self, state, passed_table):
+    # Get the position of the PacMan
+    curr_pos = get_PacMan_Position(state.grid)
+    # Generate the trace table
+    if passed_table[0] == None:
+        passed_table[0] = init_table(state)
+        passed_table[0][curr_pos[0]][curr_pos[1]] = -2
+    # Check the possible actions
+    actions = []
+    for i in range(4):
+        if passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] >= 0:
+            actions.append((curr_pos[0] + [0,0,-1,1][i], curr_pos[1] + [1,-1,0,0][i]))
+            val = passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] # You will explore this at some point
+            passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] = -2 if val == 0 else 1
+    return actions
+
+def new_result_table(self, state, action):
+    #Apply the action to the state and return the new state
+    # Get the position of the PacMan
+    curr_pos = get_PacMan_Position(state.grid)
+    # Generate the new grid
+    new_grid = [list(row) for row in state.grid]
+    # Update the grid if the new position is valid
+    if is_valid_pos(state, action):
+        new_grid[action[0]][action[1]] = "P"
+        new_grid[curr_pos[0]][curr_pos[1]] = "."
+    # Return the new state
+    return State(state.shape, tuple(map(tuple, new_grid)), state.answer, state.move + str(action))
+
+########################################################################################
+
 #################
 # Problem class #
 #################
@@ -224,6 +277,7 @@ dico = {}
 class Pacman(Problem):
 
     def actions(self, state):
+        return new_action_table(self, state, passed_table)
         possible_actions = []
         action = ""
         # Define the possible actions for a given state (state here represents the grid in which PacMan moves)
@@ -251,7 +305,7 @@ class Pacman(Problem):
     def result(self, state, action):
         # Apply the action to the state and return the new state
         # Action is a peculiar tuple ((int, int), string) : (furthest, fruits), direction
-        return new_result(self,state, action)
+        return new_result_table(self,state, action)
         # Get the position of the PacMan
         position = get_PacMan_Position(state.grid)
 
@@ -316,9 +370,12 @@ if __name__ == "__main__":
     init_state = State(shape, tuple(initial_grid), initial_fruit_count, "Init")
     problem = Pacman(init_state)
 
+    show_grid(init_state.grid)
+
     # Example of search
     start_timer = time.perf_counter()
     node, nb_explored, remaining_nodes = breadth_first_tree_search(problem)
+    #node, nb_explored, remaining_nodes = depth_first_tree_search(problem)
     end_timer = time.perf_counter()
 
     # Example of print
