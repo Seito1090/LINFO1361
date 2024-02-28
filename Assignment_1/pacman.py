@@ -226,7 +226,7 @@ passed_table =[None]
 
 def print_table(table):
     for row in table:
-        print(''.join(f"{element:2}" for element in row))
+        print(''.join(f"{element:3}" for element in row))
     print("\n")
 
 def init_table(state):
@@ -248,11 +248,13 @@ def new_action_table(self, state, passed_table):
         passed_table[0][curr_pos[0]][curr_pos[1]] = -2
     # Check the possible actions
     actions = []
+    curr_value = passed_table[0][curr_pos[0]][curr_pos[1]]
     for i in range(4):
         if passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] >= 0:
             actions.append((curr_pos[0] + [0,0,-1,1][i], curr_pos[1] + [1,-1,0,0][i]))
             val = passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] # You will explore this at some point
-            passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] = -2 if val == 0 else 1
+            passed_table[0][curr_pos[0] + [0,0,-1,1][i]][curr_pos[1] + [1,-1,0,0][i]] = curr_value-1 if val == 0 else 1
+    #print_table(passed_table[0])
     return actions
 
 def new_result_table(self, state, action):
@@ -266,7 +268,16 @@ def new_result_table(self, state, action):
         new_grid[action[0]][action[1]] = "P"
         new_grid[curr_pos[0]][curr_pos[1]] = "."
     # Return the new state
-    return State(state.shape, tuple(map(tuple, new_grid)), state.answer, state.move + str(action))
+    new_state = State(state.shape, tuple(map(tuple, new_grid)), state.answer, f"Move to {action}")
+    if self.goal_test(new_state):
+        new_state = State(state.shape, tuple(map(tuple, new_grid)), state.answer, f"Move to {action} Goal")
+    return new_state
+
+def plot_table(table):
+    import matplotlib.pyplot as plt
+    plt.imshow(table, cmap='hot', interpolation='nearest')
+    plt.colorbar()
+    plt.show()
 
 ########################################################################################
 
@@ -370,13 +381,15 @@ if __name__ == "__main__":
     init_state = State(shape, tuple(initial_grid), initial_fruit_count, "Init")
     problem = Pacman(init_state)
 
-    show_grid(init_state.grid)
+    #show_grid(init_state.grid) #HACK : to be removed
 
     # Example of search
     start_timer = time.perf_counter()
-    node, nb_explored, remaining_nodes = breadth_first_tree_search(problem)
-    #node, nb_explored, remaining_nodes = depth_first_tree_search(problem)
+    #node, nb_explored, remaining_nodes = breadth_first_tree_search(problem)
+    node, nb_explored, remaining_nodes = breadth_first_graph_search(problem)
     end_timer = time.perf_counter()
+
+    #plot_table(passed_table[0]) #HACK : to be removed
 
     # Example of print
     path = node.path()
