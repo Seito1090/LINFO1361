@@ -30,8 +30,6 @@ def is_pos(state:object, pos:tuple):
 
 ##############################################################################
 
-def arrow_pos()
-
 def arrow_check(grid:tuple, off_dir:int, dist:int, pos:tuple):
     chk_forw  = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist, pos[1] + off_dir[1]*dist)) # YX
     chk_latl  = is_posG(grid=grid, pos=(pos[0] + off_dir[1] + off_dir[0]*dist, pos[1] + off_dir[0] + off_dir[1]*dist)) # YX
