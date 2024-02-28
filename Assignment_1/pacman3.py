@@ -30,33 +30,32 @@ def is_pos(state:object, pos:tuple):
 
 ##############################################################################
 
-def arrow_pos()
-
-def arrow_check(grid:tuple, off_dir:int, dist:int, pos:tuple):
-    chk_forw  = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist, pos[1] + off_dir[1]*dist)) # YX
-    chk_latl  = is_posG(grid=grid, pos=(pos[0] + off_dir[1] + off_dir[0]*dist, pos[1] + off_dir[0] + off_dir[1]*dist)) # YX
-    chk_latr  = is_posG(grid=grid, pos=(pos[0] - off_dir[1] + off_dir[0]*dist, pos[1] - off_dir[0] + off_dir[1]*dist)) # YX
-    chk_diagl = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist + off_dir[1], pos[1] + off_dir[1]*dist + off_dir[0])) # YX
-    chk_diagr = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist - off_dir[1], pos[1] + off_dir[1]*dist - off_dir[0])) # YX
-    return chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr    
-
 def arrow_sprint(grid:tuple, pos: tuple, off:tuple = (0,0)):
     # Compute the offset of the arrow, depending on where the offset is going (up, down, left, right)
+    pos_forw = (pos[0] + off[0], pos[1] + off[1])
+    pos_latl = (pos[0] + off[1], pos[1] + off[0])
+    pos_latr = (pos[0] - off[1], pos[1] - off[0])
+    pos_diagl = (pos[0] + off[0] + off[1], pos[1] + off[1] + off[0])
+    pos_diagr = (pos[0] + off[0] - off[1], pos[1] + off[1] - off[0])
     is_bad_choice = False
     side_has_fruit = False
     front_has_fruit = False
-    followup_booster = True
+    continue_corridor = True
+    furthest = 0
     corridor_len = 0
-    furthest = 1
-    chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr = arrow_check(grid, off, furthest, pos)
     
-    while chk_forw:
+    while is_posG(grid=grid, pos=pos_forw):
         furthest += 1
+        is_f = is_posG(grid=grid, pos=pos_forw)
+        is_l = is_posG(grid=grid, pos=pos_latl)
+        is_r = is_posG(grid=grid, pos=pos_latr)
+        is_dl = is_posG(grid=grid, pos=pos_diagl)
+        is_dr = is_posG(grid=grid, pos=pos_diagr)
         
-        if (not is_dl and not is_dr) or (not is_f and not is_r):
-            corridor_len += followup_booster
+        if ((not is_dl and not is_dr) or (not is_f and not is_r)) and continue_corridor:
+            corridor_len += 1
         else:
-            followup_booster = False
+            continue_corridor = False
             if (is_l and  grid[pos_latl[0]][pos_latl[1]] == "F") or (is_r and grid[pos_latr[0]][pos_latr[1]] == "F"):
                 side_has_fruit = True
                 corridor_len = furthest-1
@@ -67,12 +66,16 @@ def arrow_sprint(grid:tuple, pos: tuple, off:tuple = (0,0)):
                     corridor_len = furthest
                     break
 
-        chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr = arrow_check(grid, off, furthest, pos)
+        pos_forw = (pos_forw[0] + off[0], pos_forw[1] + off[1])
+        pos_latl = (pos_latl[0] + off[0], pos_latl[1] + off[1])
+        pos_latr = (pos_latr[0] + off[0], pos_latr[1] + off[1])
+        pos_diagl = (pos_diagl[0] + off[0], pos_diagl[1] + off[1])
+        pos_diagr = (pos_diagr[0] + off[0], pos_diagr[1] + off[1])
     
     if corridor_len == furthest and not side_has_fruit and not front_has_fruit:
         is_bad_choice = True
     if corridor_len == 0:
-        corridor_len = 1
+        corridor_len = 1 #+ is_posG(grid=grid, pos=(pos_forw[0] + off[0], pos_forw[1] + off[1]))
     return is_bad_choice, corridor_len, furthest, side_has_fruit, front_has_fruit
 
 def dico_register(dico:dict, key:tuple):
@@ -90,14 +93,6 @@ def dico_register_fruit(dico:dict, pos_fruit:tuple):
 def actions_dict_arrow(self, grid:tuple, dico:dict):
     curr_pos = get_PacMan_Position(grid)
     actions = []
-
-    try:
-        print(grid[curr_pos[0] - 1][curr_pos[1] - 1], grid[curr_pos[0] - 1][curr_pos[1]], grid[curr_pos[0] - 1][curr_pos[1] + 1])
-        print(grid[curr_pos[0]][curr_pos[1] - 1], grid[curr_pos[0]][curr_pos[1]], grid[curr_pos[0]][curr_pos[1] + 1])
-        print(grid[curr_pos[0] + 1][curr_pos[1] - 1], grid[curr_pos[0] + 1][curr_pos[1]], grid[curr_pos[0] + 1][curr_pos[1] + 1])
-        print("")
-    except:
-        pass
     for offset in [(0,1), (0,-1), (1,0), (-1,0)]: # bottom, right, left, top
         is_bad, corr_len, fur, rl_f, f_f = arrow_sprint(grid, curr_pos, offset)
         if not is_bad and (curr_pos[0] + offset[0]*corr_len, curr_pos[1] + offset[1]*corr_len) not in dico:
@@ -192,7 +187,32 @@ def read_instance_file(filepath):
 
     return (shape_x, shape_y), initial_grid, initial_fruit_count
 
+def check_grids(path):
+    positions = [0] #List of indexes of the states to keep
+    #This function will itterate through the path, check all the states and see if the pacman could have jumped over a few positions instead of what he did
+    for a in range(len(path) - 1):
+        current_grid = path[a].state.grid
+        current_point = get_PacMan_Position(current_grid)
+        next_grid = path[a + 1].state.grid
+        next_point = get_PacMan_Position(next_grid)
+        
+        # Check if the PacMan moved to a fruit
+        if current_grid[next_point[0]][next_point[1]] == "F":
+            positions.append(a+1)
+        else:
+            # Check if there's a change in line
+            if a != 0:
+                previous_grid = path[a - 1].state.grid
+                previous_point = get_PacMan_Position(previous_grid)
+                current_direction = (current_point[0] - previous_point[0], current_point[1] - previous_point[1])
+                next_direction = (next_point[0] - current_point[0], next_point[1] - current_point[1])
+                if current_direction != next_direction:
+                    if (current_grid[current_point[0]][current_point[1]] != "F"):
+                        positions.append(a)
 
+    new_path = [path[i] for i in positions]
+    return new_path
+    
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(f"Usage: ./Pacman.py <path_to_instance_file>")
@@ -207,19 +227,17 @@ if __name__ == "__main__":
     # Example of search
     start_timer = time.perf_counter()
     #node, nb_explored, remaining_nodes = breadth_first_tree_search(problem)
-    #node, nb_explored, remaining_nodes = breadth_first_graph_search(problem)
-    #node, nb_explored, remaining_nodes = depth_first_tree_search(problem)
-    node, nb_explored, remaining_nodes = depth_first_graph_search(problem)
-    #node, nb_explored, remaining_nodes = depth_limited_search(problem)
-    #node, nb_explored, remaining_nodes = iterative_deepening_search(problem)
-    #node, nb_explored, remaining_nodes = uniform_cost_search(problem)
-    #node, nb_explored, remaining_nodes = greedy_best_first_graph_search(problem)
+    node, nb_explored, remaining_nodes = breadth_first_graph_search(problem)
     end_timer = time.perf_counter()
 
     #plot_table(passed_table[0]) #HACK : to be removed
 
     # Example of print
     path = node.path()
+    path = check_grids(path)
+    node.depth = len(path)-1
+
+    check_grids(path)
 
     for n in path:
         # assuming that the __str__ function of state outputs the correct format
