@@ -1,19 +1,30 @@
 """
 Name of the author(s):
 - Charles Lohest <charles.lohest@uclouvain.be>
+- Victor Carballes Cordoba (NOMA : 34472100)
+- Krystian Targonski (NOMA : ???)
+- Groupe 1 (MOODLE) - Groupe 39 (Inginious) 
 """
 import time
 import sys
 from search import *
 
+#######################
+# Auxillary Functions #
+#######################
 
-#Personal functions 
-def show_grid(grid): # Function to display the grid
+def show_grid(grid):
+    """
+    Function to display the grid
+    """
     for row in grid:
         print("".join(row))
     print("\n")
 
 def get_PacMan_Position(grid):
+    """
+    Function to get the position of the PacMan in the grid
+    """
     # Returns the position of the PacMan in the grid
     for i, row in enumerate(grid):
         if 'P' in row:
@@ -21,18 +32,17 @@ def get_PacMan_Position(grid):
     return (-1, -1)
 
 def is_posG(grid:tuple, pos:tuple):
+    """
+    Function to check if a position is valid in the grid
+    """
     if 0 <= pos[0] < len(grid) and 0 <= pos[1] < len(grid[0]):
         return grid[pos[0]][pos[1]] != "#"
     return  False
 
-def is_pos(state:object, pos:tuple):
-    return 0 <= pos[0] < state.shape[0] and 0 <= pos[1] < state.shape[1] and state.grid[pos[0]][pos[1]] != "#"
-
-##############################################################################
-
 def arrow_pos(pos:tuple, off:tuple, dist:int):
-    #   \x/
-    #   xPx
+    """
+    Function to compute the positions of the arrow, and its orientation
+    """
     pos_forw  = (pos[0]          + off[0]*dist, pos[1]          + off[1]*dist) # YX
     pos_latl  = (pos[0] + off[1] + off[0]*dist, pos[1] + off[0] + off[1]*dist) # YX
     pos_latr  = (pos[0] - off[1] + off[0]*dist, pos[1] - off[0] + off[1]*dist) # YX
@@ -41,6 +51,9 @@ def arrow_pos(pos:tuple, off:tuple, dist:int):
     return pos_forw, pos_latl, pos_latr, pos_diagl, pos_diagr
 
 def arrow_check(grid:tuple, poses:tuple):
+    """
+    Function to check if the arrow is intersecting a wall
+    """
     pos_forw, pos_latl, pos_latr, pos_diagl, pos_diagr = poses # YX
     chk_forw  = is_posG(grid=grid, pos=pos_forw) # YX
     chk_latl  = is_posG(grid=grid, pos=pos_latl) # YX
@@ -50,6 +63,9 @@ def arrow_check(grid:tuple, poses:tuple):
     return chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr    
 
 def arrow_sprint(grid:tuple, pos: tuple, off:tuple = (0,0)):
+    """
+    Function to advance the arrow in the grid to find how far you can go
+    """
     # Compute the offset of the arrow, depending on where the offset is going (up, down, left, right)
     is_bad_choice = False
     side_has_fruit = False
@@ -93,48 +109,6 @@ def arrow_sprint(grid:tuple, pos: tuple, off:tuple = (0,0)):
 
     return is_bad_choice, minimal_movement, furthest, side_has_fruit, front_has_fruit
 
-
-def actions_dict_arrow(self, state:object, dico:dict):
-    curr_pos = get_PacMan_Position(state.grid)
-    actions = []
-    for offset in [(0,-1), (0,1), (1,0), (-1,0)]: # right, left, up, down
-        is_bad, min_travel, fur, rl_f, f_f = arrow_sprint(state.grid, curr_pos, offset)
-        new_pos = (curr_pos[0] + offset[0]*min_travel, curr_pos[1] + offset[1]*min_travel)
-        if str(new_pos) in state.answer:
-            continue
-        if not is_bad:
-            if f_f:
-                actions = [(min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos)]
-                break
-            elif rl_f:
-                actions = [(1, -1, rl_f, f_f, (offset[1], offset[0]), curr_pos, new_pos)]
-                break
-            else:
-                actions.append((min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos))
-    return actions
-
-def result_dict_arrow(self, state:object, action:tuple): 
-    curr_pos = get_PacMan_Position(state.grid)
-    new_grid = [list(row) for row in state.grid]
-    new_pos = action[6]
-    answer = state.answer.copy()
-
-    answer.setdefault(str(new_pos), 0)
-    
-    #print(new_pos, curr_pos, action) ; show_grid(state.grid)
-    
-    if not (new_pos[0] == curr_pos[0] and new_pos[1] == curr_pos[1]):
-        new_grid[new_pos[0]][new_pos[1]] = "P"
-        new_grid[curr_pos[0]][curr_pos[1]] = "."
-
-     # Return the new state
-    new_state = State(state.shape, tuple(map(tuple, new_grid)), answer, f"Move to {new_pos}")
-    if self.goal_test(new_state):
-        new_state = State(state.shape, tuple(map(tuple, new_grid)), answer, f"Move to {new_pos} Goal")
-    return new_state
-
-########################################################################################
-
 #################
 # Problem class #
 #################
@@ -142,11 +116,54 @@ dico = {}
 class Pacman(Problem):
 
     def actions(self, state):
-        return actions_dict_arrow(self, state, dico)
+        """Return the actions that can be executed in the given state."""
+        # Get the position of the PacMan
+        curr_pos = get_PacMan_Position(state.grid)
+        actions = []
+        # For each direction, we check how far we can go
+        for offset in [(1,0), (0,-1), (-1,0), (0,1)]: 
+            # Check how far we can go in the direction
+            is_bad, min_travel, fur, rl_f, f_f = arrow_sprint(state.grid, curr_pos, offset)
+            # Precopute the new position
+            new_pos = (curr_pos[0] + offset[0]*min_travel, curr_pos[1] + offset[1]*min_travel)
+            # If the new position has already been visited, we don't go there
+            if str(new_pos) in state.answer:
+                continue
+            elif not is_bad: # If the path is not blocked, we can go there
+
+                if f_f: # If there is a fruit in front of us, we go there
+                    actions = [(min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos)]
+                    break
+                elif rl_f: # If there is a fruit on the side, we go there
+                    actions = [(1, -1, rl_f, f_f, (offset[1], offset[0]), curr_pos, new_pos)]
+                    break
+                else:
+                    actions.append((min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos))
+        return actions
 
     def result(self, state, action):
+        """Return the state that results from executing the given action in the given state."""
         # Apply the action to the state and return the new state
-        return result_dict_arrow(self,state, action)
+        curr_pos = get_PacMan_Position(state.grid)
+        # Copy the grid, and update the position of the PacMan
+        new_grid = [list(row) for row in state.grid]
+        new_pos = action[6]
+        # Update the visited positions (dictionary)
+        answer = state.answer.copy()
+        answer.setdefault(str(new_pos), 0)
+        
+        #print(new_pos, curr_pos, action) ; show_grid(state.grid)
+        
+        # If the new position is different from the current position, we update the grid (avoid removing the PacMan from the grid)
+        if not (new_pos[0] == curr_pos[0] and new_pos[1] == curr_pos[1]):
+            new_grid[new_pos[0]][new_pos[1]] = "P"
+            new_grid[curr_pos[0]][curr_pos[1]] = "."
+
+        # Return the new state
+        new_state = State(state.shape, tuple(map(tuple, new_grid)), answer, f"Move to {new_pos}")
+        if self.goal_test(new_state):
+            new_state = State(state.shape, tuple(map(tuple, new_grid)), answer, f"Move to {new_pos} Goal")
+        return new_state
         
     def goal_test(self, state):
     	#check for goal state
