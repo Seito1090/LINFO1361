@@ -1,7 +1,7 @@
 # Fdb version 4
-["pdflatex"] 1709198333.17935 "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_1/template/assignment/report_a1.tex" "report_a1.pdf" "report_a1" 1709198334.12917 0
+["pdflatex"] 1709210881.04105 "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_1/template/assignment/report_a1.tex" "report_a1.pdf" "report_a1" 1709210881.85317 0
   "../template/report.cls" 1709133787.62735 3442 462dacb40194f010ec1a7fe4f49729df ""
-  "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_1/template/assignment/report_a1.tex" 1709198332.89884 6833 35a493e2e698bb297c3d893e2facdaf9 ""
+  "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_1/template/assignment/report_a1.tex" 1709210880.72386 11459 b62a34a6feb86d63f7ff62ad2b62c315 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/ec-iwona.enc" 1276043435 2027 f8708480c25b8150843bb94b8b39c93f ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/ts1-iwona.enc" 1276043435 2498 0f0d8d7f399a2d1e2f1ba0b123477449 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -172,9 +172,9 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1689984000 40900 887e0dc8cac988a9e9c574af364cf837 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1702923245.26729 4602016 72a039a3c4aea0fa25b5d35d65138f54 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1707913753 7871971 41cb3b552485a294e2e154e57d412b12 ""
-  "report_a1.aux" 1709198333.98785 794 4f35364e757a83e2e72b71dea8513135 "pdflatex"
-  "report_a1.out" 1709198333.98885 349 14fc52a8149b538f5681968352a96922 "pdflatex"
-  "report_a1.tex" 1709198332.89884 6833 35a493e2e698bb297c3d893e2facdaf9 ""
+  "report_a1.aux" 1709210881.73388 794 4f35364e757a83e2e72b71dea8513135 "pdflatex"
+  "report_a1.out" 1709210881.73388 349 14fc52a8149b538f5681968352a96922 "pdflatex"
+  "report_a1.tex" 1709210880.72386 11459 b62a34a6feb86d63f7ff62ad2b62c315 ""
   (generated)
   "report_a1.aux"
   "report_a1.log"

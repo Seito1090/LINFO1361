@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.2.14)  29 FEB 2024 10:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.2.14)  29 FEB 2024 13:48
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -756,18 +756,18 @@ Package rerunfilecheck Info: File `report_a1.out' has not changed.
 (rerunfilecheck)             Checksum: 14FC52A8149B538F5681968352A96922;349.
  ) 
 Here is how much of TeX's memory you used:
- 24621 strings out of 476041
- 451526 string characters out of 5793174
- 1873388 words of memory out of 6000000
+ 24624 strings out of 476041
+ 451547 string characters out of 5793174
+ 1875388 words of memory out of 6000000
  44638 multiletter control sequences out of 15000+600000
  579179 words of font info for 89 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
  99i,14n,103p,656b,700s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonab.pfb></usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonar.pfb></usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonari.pfb>
-Output written on report_a1.pdf (4 pages, 84861 bytes).
+Output written on report_a1.pdf (4 pages, 89396 bytes).
 PDF statistics:
- 79 PDF objects out of 1000 (max. 8388607)
- 64 compressed objects within 1 object stream
- 22 named destinations out of 1000 (max. 500000)
+ 83 PDF objects out of 1000 (max. 8388607)
+ 68 compressed objects within 1 object stream
+ 25 named destinations out of 1000 (max. 500000)
  29 words of extra memory for PDF output out of 10000 (max. 10000000)
 

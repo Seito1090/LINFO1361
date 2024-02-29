@@ -1,7 +1,7 @@
 \documentclass[11pt,a4paper]{../template/report}
 
 \assignment{1}
-\group{1}
+\group{1 (Moodle), 39 (INGInious)}
 \students{Victor Carballes Cordoba (NOMA : 34472100)}{Krystian Targonski (NOMA : 42942000)}
 
 \begin{document}
@@ -16,6 +16,11 @@
 
 \begin{answer}
 % Your answer here
+\begin{enumerate}
+    \item State : This class is used to represent / store the current state of the search problem. 
+    \item Node : This class is used to construct and keep track of the exploration of the problem.
+    \item Problem : This class is used to define the problem in its entirety. It contains the initial state, the goal test, the possible actions as well as the way to apply the actions.
+    \end{enumerate}
 \end{answer}
 
 
@@ -27,6 +32,10 @@
 
 \begin{answer}
 % Your answer here
+The key difference is the data structure used for the frontier. In the case of \textit{breadth\_first\_graph\_search} (BFS), 
+the frontier is implemented as a FIFO queue whereas in the case of \textit{depth\_first\_graph\_search} (DFS), the frontier is implemented as a stack.
+This difference changes the way the nodes are explored, the BFS explores the nodes level by level while the DFS fully explores one node and its children 
+before moving to the next one.
 \end{answer}
 
 
@@ -38,6 +47,11 @@
 
 \begin{answer}
 % Your answer here
+The difference between those 2 methods lies within the method used to handle repeated states or loops in the search.
+The \textit{tree\_search} method does not handle them which can cause infinite loops.
+The \textit{graph\_search} method on the other hand, keeps track of the states that have been explored and will not add them to the frontier 
+if they are already present thus avoiding loops.
+As for the impact, \textit{tree\_search} may run indefinitely if the search space contains loops while \textit{graph\_search} will not.
 \end{answer}
 
 
@@ -50,6 +64,11 @@
 
 \begin{answer}
 % Your answer here
+In this case, the structure will be used to store the explored nodes so it can be done with either a set or dictionary.
+The propreties of elements to be put in those structure should be : 
+ a. They should be hashable
+ b. They should be unique 
+ c. They should have a defined equality operator 
 \end{answer}
 
 
@@ -61,6 +80,8 @@
 
 \begin{answer}
 % Your answer here
+If a symetry is defined, we can use a unique representation for a state that is independant of any symetries. If we have this
+representation, we can just transform the state into it and then compare with what is already in the reached nodes minus the frontier list and if it is, we ignore it.
 \end{answer}
 
 
@@ -79,6 +100,10 @@ PacMan Problem (17 pts)}
 
 \begin{answer}
 % Your answer here
+Our agent considers four possible directions at each state: up, down, left and right. For each one, the agent checks
+how far it can move before finding a wall or fruit. If the later is detected, then only the action that leads to it will be given.
+An optimisation we did to reduce the branching factor, was allow an agent to rush in a direction if he found himself in a tunnel (be it between walls or something else) effectively considering less possibilities.
+Which leads us to the worst branching factor, N+M, where N is the number of rows and M the number of columns of the map, and the best, 1.
 \end{answer}
 \begin{enumerate}
 \setcounter{enumi}{1}
@@ -91,6 +116,8 @@ PacMan Problem (17 pts)}
 
 \begin{answer}
 % Your answer here
+We would first create a function that checks if the position is within the map's bounds and not inside a wall. Then, using this function, we iterate forward
+updating the offset of the observation, up until a wall or the end of the map is found. 
 \end{answer}
 
 
@@ -105,6 +132,9 @@ PacMan Problem (17 pts)}
 
 \begin{answer}
 % Your answer here
+We would choose the breadth first search strategy, as it is guaranteed to find the shortest path to any goal with techniques such as marking visited nodes in a different set (dictionary).
+When we use the depth first search algorithm, its very possible to get stuck in infinite loops, as the algorithm is incapable of using previously explored places as a reference to avoid them. 
+Because if it did, then it would byte its own tail, and the algorithm would never end or would get stuck.
 \end{answer}
 
 
@@ -119,6 +149,7 @@ PacMan Problem (17 pts)}
 
 \begin{answers}[4cm]
 % Your answer here
+The main advantage of using graph search is that it avoids infinite loops, by keeping track of the already explored states. Tree search on the other hand, does not keep track of the states that have been explored, which can lead to infinite loops.
 \end{answers}
 
 
@@ -195,6 +226,7 @@ you lose?
 
 \begin{answer}
 % Your answer here
+We could add in the seeking of possible actions, a check that if the fruit is poisonous, then the agent should try to jump over it or stop before it.
 \end{answer}
 
 \begin{enumerate}
@@ -208,6 +240,11 @@ you lose?
 
 \begin{answer}
 % Your answer here
+We could improve the algorithm by using binary tables to store the different ellements in a fast vectorizeable way. This would allow us to avoid using loops and would speed up the algorithm overall. 
+Another improvement would be to not use a dictionary to store the visited nodes, but to use a binary table instead. This would reduce the memory footprint, and allow for faster lookups.
+One last improvement would be to keep track of already eaten fruits in other instances of the problem, to then be able to converge to a solution faster if we have explored the whole graph before.
+Witch would then lead to informed search; this solution would reduce greatly the branching factor and memory usage in the case of multiple distant fruits, 
+as agents would only need to find the shortest path to only one fruit, before getting resolved by a more efficient informed agent.
 \end{answer}
 
 \end{document}
