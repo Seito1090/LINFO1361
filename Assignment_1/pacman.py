@@ -25,7 +25,6 @@ def get_PacMan_Position(grid):
     """
     Function to get the position of the PacMan in the grid
     """
-    # Returns the position of the PacMan in the grid
     for i, row in enumerate(grid):
         if 'P' in row:
             return (i, row.index('P'))
@@ -117,15 +116,20 @@ class Pacman(Problem):
 
     def actions(self, state):
         """Return the actions that can be executed in the given state."""
+
         # Get the position of the PacMan
         curr_pos = get_PacMan_Position(state.grid)
         actions = []
+
         # For each direction, we check how far we can go
         for offset in [(1,0), (0,-1), (-1,0), (0,1)]: 
+
             # Check how far we can go in the direction
             is_bad, min_travel, fur, rl_f, f_f = arrow_sprint(state.grid, curr_pos, offset)
+
             # Precopute the new position
             new_pos = (curr_pos[0] + offset[0]*min_travel, curr_pos[1] + offset[1]*min_travel)
+
             # If the new position has already been visited, we don't go there
             if str(new_pos) in state.answer:
                 continue
@@ -144,11 +148,14 @@ class Pacman(Problem):
 
     def result(self, state, action):
         """Return the state that results from executing the given action in the given state."""
+
         # Apply the action to the state and return the new state
         curr_pos = get_PacMan_Position(state.grid)
+
         # Copy the grid, and update the position of the PacMan
         new_grid = [list(row) for row in state.grid]
         new_pos = action[6]
+        
         # Update the visited positions (dictionary)
         answer = state.answer.copy()
         answer.setdefault(str(new_pos), 0)
