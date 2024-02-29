@@ -142,6 +142,7 @@ class Pacman(Problem):
                     actions = [(1, -1, rl_f, f_f, (offset[1], offset[0]), curr_pos, new_pos)]
                     break
                 else:
+                    # add all possible actions in the line of sight
                     for i in range(min_travel, fur): actions.append((i, fur, rl_f, f_f, offset, curr_pos, (curr_pos[0] + offset[0]*i, curr_pos[1] + offset[1]*i)))
                     #actions.append((min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos))
         return actions
