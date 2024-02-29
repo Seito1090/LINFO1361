@@ -30,12 +30,23 @@ def is_pos(state:object, pos:tuple):
 
 ##############################################################################
 
-def arrow_check(grid:tuple, off_dir:int, dist:int, pos:tuple):
-    chk_forw  = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist, pos[1] + off_dir[1]*dist)) # YX
-    chk_latl  = is_posG(grid=grid, pos=(pos[0] + off_dir[1] + off_dir[0]*dist, pos[1] + off_dir[0] + off_dir[1]*dist)) # YX
-    chk_latr  = is_posG(grid=grid, pos=(pos[0] - off_dir[1] + off_dir[0]*dist, pos[1] - off_dir[0] + off_dir[1]*dist)) # YX
-    chk_diagl = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist + off_dir[1], pos[1] + off_dir[1]*dist + off_dir[0])) # YX
-    chk_diagr = is_posG(grid=grid, pos=(pos[0] + off_dir[0]*dist - off_dir[1], pos[1] + off_dir[1]*dist - off_dir[0])) # YX
+def arrow_pos(pos:tuple, off:tuple, dist:int):
+    #   \x/
+    #   xPx
+    pos_forw  = (pos[0]          + off[0]*dist, pos[1]          + off[1]*dist) # YX
+    pos_latl  = (pos[0] + off[1] + off[0]*dist, pos[1] + off[0] + off[1]*dist) # YX
+    pos_latr  = (pos[0] - off[1] + off[0]*dist, pos[1] - off[0] + off[1]*dist) # YX
+    pos_diagl = (pos[0] + off[1] + off[0]*dist, pos[1] + off[0] + off[1]*dist) # YX
+    pos_diagr = (pos[0] - off[1] + off[0]*dist, pos[1] - off[0] + off[1]*dist) # YX
+    return pos_forw, pos_latl, pos_latr, pos_diagl, pos_diagr
+
+def arrow_check(grid:tuple, poses:tuple):
+    pos_forw, pos_latl, pos_latr, pos_diagl, pos_diagr = poses # YX
+    chk_forw  = is_posG(grid=grid, pos=pos_forw) # YX
+    chk_latl  = is_posG(grid=grid, pos=pos_latl) # YX
+    chk_latr  = is_posG(grid=grid, pos=pos_latr) # YX
+    chk_diagl = is_posG(grid=grid, pos=pos_diagl) # YX
+    chk_diagr = is_posG(grid=grid, pos=pos_diagr) # YX
     return chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr    
 
 def arrow_sprint(grid:tuple, pos: tuple, off:tuple = (0,0)):
@@ -44,77 +55,71 @@ def arrow_sprint(grid:tuple, pos: tuple, off:tuple = (0,0)):
     side_has_fruit = False
     front_has_fruit = False
     followup_booster = True
-    corridor_len = 0
+    minimal_movement = 1
     furthest = 1
-    chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr = arrow_check(grid, off, furthest, pos)
+    poses = arrow_pos(pos, off, furthest)
+    pos_forw, pos_latl, pos_latr, pos_diagl, pos_diagr = poses # YX
+    chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr = arrow_check(grid, poses)
     
+    # While the path is not blocked, we continue to sprint
     while chk_forw:
         furthest += 1
         
-        if (not is_dl and not is_dr) or (not is_f and not is_r):
-            corridor_len += followup_booster
+        # If the corridor is blocked on both sides, we can continue the sprint
+        if not((chk_diagl or chk_diagr) and (chk_latl or chk_latr)):
+            minimal_movement += followup_booster
         else:
             followup_booster = False
-            if (is_l and  grid[pos_latl[0]][pos_latl[1]] == "F") or (is_r and grid[pos_latr[0]][pos_latr[1]] == "F"):
+            # Finds a fruit next to it
+            if (chk_latl and  grid[pos_latl[0]][pos_latl[1]] == "F") or (chk_latr and grid[pos_latr[0]][pos_latr[1]] == "F"):
                 side_has_fruit = True
-                corridor_len = furthest-1
+                minimal_movement = furthest-1
                 break
-            elif is_f :
+            # Finds a fruit in front of it
+            elif chk_forw :
                 if grid[pos_forw[0]][pos_forw[1]] == "F":
                     front_has_fruit = True
-                    corridor_len = furthest
+                    minimal_movement = furthest-1
                     break
 
-        chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr = arrow_check(grid, off, furthest, pos)
+        # Update the positions and checks
+        poses = arrow_pos(pos, off, furthest)
+        pos_forw, pos_latl, pos_latr, pos_diagl, pos_diagr = poses # YX
+        chk_forw, chk_latl, chk_latr, chk_diagl, chk_diagr = arrow_check(grid, poses)
     
-    if corridor_len == furthest and not side_has_fruit and not front_has_fruit:
+    # if the path is blocked, and we are at the end, then don't venture there
+    if minimal_movement == furthest and not side_has_fruit and not front_has_fruit:
         is_bad_choice = True
-    if corridor_len == 0:
-        corridor_len = 1
-    return is_bad_choice, corridor_len, furthest, side_has_fruit, front_has_fruit
 
-def dico_register(dico:dict, key:tuple):
-    if key not in dico:
-        dico[key] = 1
-    else:
-        dico[key] += 1
+    return is_bad_choice, minimal_movement, furthest, side_has_fruit, front_has_fruit
 
-def dico_register_fruit(dico:dict, pos_fruit:tuple):
-    if 'fruits' not in dico:
-        dico['fruits'] = [pos_fruit]
-    else:
-        dico['fruits'].append(pos_fruit)
 
-def actions_dict_arrow(self, grid:tuple, dico:dict):
-    curr_pos = get_PacMan_Position(grid)
+def actions_dict_arrow(self, state:object, dico:dict):
+    curr_pos = get_PacMan_Position(state.grid)
     actions = []
-
-    try:
-        print(grid[curr_pos[0] - 1][curr_pos[1] - 1], grid[curr_pos[0] - 1][curr_pos[1]], grid[curr_pos[0] - 1][curr_pos[1] + 1])
-        print(grid[curr_pos[0]][curr_pos[1] - 1], grid[curr_pos[0]][curr_pos[1]], grid[curr_pos[0]][curr_pos[1] + 1])
-        print(grid[curr_pos[0] + 1][curr_pos[1] - 1], grid[curr_pos[0] + 1][curr_pos[1]], grid[curr_pos[0] + 1][curr_pos[1] + 1])
-        print("")
-    except:
-        pass
-    for offset in [(0,1), (0,-1), (1,0), (-1,0)]: # bottom, right, left, top
-        is_bad, corr_len, fur, rl_f, f_f = arrow_sprint(grid, curr_pos, offset)
-        if not is_bad and (curr_pos[0] + offset[0]*corr_len, curr_pos[1] + offset[1]*corr_len) not in dico:
+    for offset in [(0,-1), (0,1), (1,0), (-1,0)]: # right, left, up, down
+        is_bad, min_travel, fur, rl_f, f_f = arrow_sprint(state.grid, curr_pos, offset)
+        new_pos = (curr_pos[0] + offset[0]*min_travel, curr_pos[1] + offset[1]*min_travel)
+        if str(new_pos) in state.answer:
+            continue
+        if not is_bad:
             if f_f:
-                actions = [(corr_len, fur, rl_f, f_f, offset)]
-                dico_register_fruit(dico, (curr_pos[0] + offset[0]*corr_len, curr_pos[1] + offset[1]*corr_len))
+                actions = [(min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos)]
                 break
             elif rl_f:
-                actions = [(1, -1, rl_f, f_f, (-offset[1], offset[0]))]
+                actions = [(1, -1, rl_f, f_f, (offset[1], offset[0]), curr_pos, new_pos)]
                 break
             else:
-                dico_register(dico, (curr_pos[0] + offset[0]*corr_len, curr_pos[1] + offset[1]*corr_len))
-                actions.append((corr_len, fur, rl_f, f_f, offset))
+                actions.append((min_travel, fur, rl_f, f_f, offset, curr_pos, new_pos))
     return actions
 
 def result_dict_arrow(self, state:object, action:tuple): 
     curr_pos = get_PacMan_Position(state.grid)
     new_grid = [list(row) for row in state.grid]
-    new_pos = (curr_pos[0] + action[4][0]*action[0], curr_pos[1] + action[4][1]*action[0])
+    new_pos = action[6]
+    answer = state.answer.copy()
+
+    answer.setdefault(str(new_pos), 0)
     
     #print(new_pos, curr_pos, action) ; show_grid(state.grid)
     
@@ -123,21 +128,10 @@ def result_dict_arrow(self, state:object, action:tuple):
         new_grid[curr_pos[0]][curr_pos[1]] = "."
 
      # Return the new state
-    new_state = State(state.shape, tuple(map(tuple, new_grid)), state.answer, f"Move to {new_pos}")
+    new_state = State(state.shape, tuple(map(tuple, new_grid)), answer, f"Move to {new_pos}")
     if self.goal_test(new_state):
-        new_state = State(state.shape, tuple(map(tuple, new_grid)), state.answer, f"Move to {new_pos} Goal")
+        new_state = State(state.shape, tuple(map(tuple, new_grid)), answer, f"Move to {new_pos} Goal")
     return new_state
-
-def dico_to_graph(dico:dict):
-    import matplotlib.pyplot as plt
-    table = [[0 for i in range(10)] for j in range(10)]
-    for key in dico:
-        if key != 'fruits':
-            new_key = tuple(key)
-            table[new_key[0]][new_key[1]] = dico[key]
-    plt.imshow(table, cmap='hot', interpolation='nearest')
-    plt.colorbar()
-    plt.show()
 
 ########################################################################################
 
@@ -148,7 +142,7 @@ dico = {}
 class Pacman(Problem):
 
     def actions(self, state):
-        return actions_dict_arrow(self, state.grid, dico)
+        return actions_dict_arrow(self, state, dico)
 
     def result(self, state, action):
         # Apply the action to the state and return the new state
@@ -160,7 +154,6 @@ class Pacman(Problem):
             if 'F' in row:
                 return False
         return True
-
 
 
 ###############
@@ -197,7 +190,7 @@ if __name__ == "__main__":
     filepath = sys.argv[1]
 
     shape, initial_grid, initial_fruit_count = read_instance_file(filepath)
-    init_state = State(shape, tuple(initial_grid), initial_fruit_count, "Init")
+    init_state = State(shape, tuple(initial_grid), {}, "Init")
     problem = Pacman(init_state)
 
     #show_grid(init_state.grid) #HACK : to be removed
@@ -205,9 +198,9 @@ if __name__ == "__main__":
     # Example of search
     start_timer = time.perf_counter()
     #node, nb_explored, remaining_nodes = breadth_first_tree_search(problem)
-    #node, nb_explored, remaining_nodes = breadth_first_graph_search(problem)
+    node, nb_explored, remaining_nodes = breadth_first_graph_search(problem)
     #node, nb_explored, remaining_nodes = depth_first_tree_search(problem)
-    node, nb_explored, remaining_nodes = depth_first_graph_search(problem)
+    #node, nb_explored, remaining_nodes = depth_first_graph_search(problem)
     #node, nb_explored, remaining_nodes = depth_limited_search(problem)
     #node, nb_explored, remaining_nodes = iterative_deepening_search(problem)
     #node, nb_explored, remaining_nodes = uniform_cost_search(problem)
