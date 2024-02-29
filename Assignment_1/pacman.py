@@ -2,7 +2,7 @@
 Name of the author(s):
 - Charles Lohest <charles.lohest@uclouvain.be>
 - Victor Carballes Cordoba (NOMA : 34472100)
-- Krystian Targonski (NOMA : ???)
+- Krystian Targonski (NOMA : 42942000)
 - Groupe 1 (MOODLE) - Groupe 39 (Inginious) 
 """
 import time
