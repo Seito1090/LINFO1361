@@ -100,8 +100,8 @@ PacMan Problem (17 pts)}
 
 \begin{answer}
 % Your answer here
-Our agent considers four possible directions at each state: up, down, left and right. For each one, the agent checks
-how far it can move before finding a wall or fruit. If the later is detected, then only the action that leads to it will be given.
+Our agent considers four directions at each state: up, down, left and right. For each one, it checks
+how far it can move before finding a wall or fruit. If the later is detected, then only the action that leads to that fruit will be given.
 An optimisation we did to reduce the branching factor, was allow an agent to rush in a direction if he found himself in a tunnel (be it between walls or something else) effectively considering less possibilities.
 Which leads us to the worst branching factor, N+M, where N is the number of rows and M the number of columns of the map, and the best, 1.
 \end{answer}
@@ -132,9 +132,9 @@ updating the offset of the observation, up until a wall or the end of the map is
 
 \begin{answer}
 % Your answer here
-We would choose the breadth first search strategy, as it is guaranteed to find the shortest path to any goal with techniques such as marking visited nodes in a different set (dictionary).
-When we use the depth first search algorithm, its very possible to get stuck in infinite loops, as the algorithm is incapable of using previously explored places as a reference to avoid them. 
-Because if it did, then it would byte its own tail, and the algorithm would never end or would get stuck.
+We would prefer the breadth first search strategy, as it is guaranteed to find the shortest path to any goal using techniques such as marking visited nodes (in a separate set).
+If we choose the depth first search algorithm, its very likely for it to get stuck in infinite loops, as the algorithm is incapable of avoiding previously explored nodes. If it did,
+then it would avoid its own tail, and the algorithm would never end or would get stuck.
 \end{answer}
 
 
@@ -149,7 +149,12 @@ Because if it did, then it would byte its own tail, and the algorithm would neve
 
 \begin{answers}[4cm]
 % Your answer here
-The main advantage of using graph search is that it avoids infinite loops, by keeping track of the already explored states. Tree search on the other hand, does not keep track of the states that have been explored, which can lead to infinite loops.
+For Tree search, first the advantages would be : a. Simplicity to implement and b. When it works, the result would be given quickly.
+However there would be a big disadvantage, the algorithm would not be able to avoid loops which would lead to either infinite loops / algorithm getting stuck or the algorithm eating twice the same fruit or something of the sort which isn't easy to handle.
+
+For Graph search, the disadvantages would be : a. More complicated to implement and b. More memory usage / overall hit on performance.
+HOWEVER, the advantages would outweight those. The algorithm would avoid loops witch guarantees the algorithm to end and to not eat the same fruit more than once.
+Hence why, in this case, graph search would be preferable.
 \end{answers}
 
 
@@ -226,7 +231,7 @@ you lose?
 
 \begin{answer}
 % Your answer here
-We could add in the seeking of possible actions, a check that if the fruit is poisonous, then the agent should try to jump over it or stop before it.
+Just add a check in the actions, if the fruit is poisonous, then the agent should try to jump over it or just avoid it.
 \end{answer}
 
 \begin{enumerate}
@@ -240,11 +245,9 @@ We could add in the seeking of possible actions, a check that if the fruit is po
 
 \begin{answer}
 % Your answer here
-We could improve the algorithm by using binary tables to store the different ellements in a fast vectorizeable way. This would allow us to avoid using loops and would speed up the algorithm overall. 
-Another improvement would be to not use a dictionary to store the visited nodes, but to use a binary table instead. This would reduce the memory footprint, and allow for faster lookups.
-One last improvement would be to keep track of already eaten fruits in other instances of the problem, to then be able to converge to a solution faster if we have explored the whole graph before.
-Witch would then lead to informed search; this solution would reduce greatly the branching factor and memory usage in the case of multiple distant fruits, 
-as agents would only need to find the shortest path to only one fruit, before getting resolved by a more efficient informed agent.
+We could improve the algorithm by using binary tables to store the different elements in a fast vectorizeable way. This would allow us to avoid using loops and would speed up the algorithm overall. 
+Another improvement would avoiding dictionaries and using a binary table to store the visited nodes. This would reduce the memory footprint, and allow for faster lookups.
+Lastly, we could keep track of already eaten fruits in other instances but, although better on memory and branching factor, this would become more of a informed search solution.
 \end{answer}
 
 \end{document}
