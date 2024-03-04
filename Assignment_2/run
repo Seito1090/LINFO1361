@@ -1,0 +1,17 @@
+#! /bin/bash
+
+PYTHON_WIN="python"
+PYTHON_UNIX="python3"
+
+# Check if the OS is Windows, else UNIX
+if [ "$OS" = "Windows_NT" ]; then
+    PYHON_TO_USE=$PYTHON_WIN
+else
+    PYHON_TO_USE=$PYTHON_UNIX
+fi
+
+# Run the program
+$PYHON_TO_USE LINFO1361-Shobu/main.py
+
+
+# End of file
