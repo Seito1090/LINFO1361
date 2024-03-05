@@ -10,8 +10,17 @@ else
     PYHON_TO_USE=$PYTHON_UNIX
 fi
 
+OPPONENT1="agent" # random | alphabeta | mcts | agent | human
+OPPONENT2="agent"
+
 # Run the program
-$PYHON_TO_USE LINFO1361-Shobu/main.py
+$PYHON_TO_USE LINFO1361-Shobu/main.py -d -l logs/log.txt -w1 $OPPONENT1 -w2 $OPPONENT2
+
+# replay : 
+# $PYHON_TO_USE LINFO1361-Shobu/main.py -r logs/log.txt
+
+
+
 
 
 # End of file
