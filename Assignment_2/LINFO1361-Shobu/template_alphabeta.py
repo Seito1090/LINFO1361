@@ -56,15 +56,23 @@ class AlphaBetaAgent(Agent):
         Returns:
             float: The evaluated score of the state.
         """
+        min_stones_white = 4
+        min_stones_black = 4
+
         # Just did what the pdf said
-        player_stones = state.board[self.player]
-        opponent_stones = state.board[1 - self.player]
+        for singleBoard in range(4):
+            white_stones, black_stones = state.board[singleBoard]
+            if len(white_stones) < min_stones_white:
+                min_stones_white = len(white_stones)
+            if len(black_stones) < min_stones_black:
+                min_stones_black = len(black_stones)
 
-        player_min_stones = min(len(square) for square in player_stones)
-        opponent_min_stones = min(len(square) for square in opponent_stones)
-
-        score = (player_min_stones - opponent_min_stones) 
-
+        # To make the relative score on the player id (0 or 1)
+        if self.player == 0:
+            score = (min_stones_white - min_stones_black) / 1.0
+        else:
+            score = (min_stones_black - min_stones_white) / 1.0
+        
         return score
 
     def alpha_beta_search(self, state):
@@ -100,7 +108,6 @@ class AlphaBetaAgent(Agent):
             return self.eval(state), None
 
         max_val = -float("inf") 
-        return_action = None
 
         for action in self.game.actions(state):
             test_state = self.game.result(state, action)
@@ -138,7 +145,6 @@ class AlphaBetaAgent(Agent):
             return self.eval(state), None
 
         min_val = float("inf") 
-        return_action = None
 
         for action in self.game.actions(state):
             test_state = self.game.result(state, action)
