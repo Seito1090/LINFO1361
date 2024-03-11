@@ -95,12 +95,13 @@ class UCTAgent(Agent):
         Returns:
             Node: The selected leaf node.
         """
-        while node.children:
-            if any(child.N == 0 for child in node.children):
-                return node
-            #node = node.children[np.argmax(np.array([self.UCB1(child) for child in node.children]))]
-            node = node.children.get(max(node.children, key=lambda n: self.UCB1(n)))
-        return node
+        # If the node is a terminal node or a node with no simulations, return it
+        if self.game.is_terminal(node.state) or any(child.N == 0 for child in node.children):
+            return node
+            
+        # Otherwise, recursively select the child node with the highest UCB1 value
+        max_child = max(node.children, key=lambda n: self.UCB1(n))
+        return self.select(max_child)
     
     def expand(self, node):
         """Expands a node by adding a child node to the tree for an unexplored action.
@@ -115,21 +116,16 @@ class UCTAgent(Agent):
         Returns:
             Node: The child node selected. If the node is at a terminal state, the node itself is returned.
         """
-        possible_actions = self.game.actions(node.state)
-        if self.game.is_terminal(node.state) or len(possible_actions) == 0:
+        # If the node is a terminal node, return it
+        if self.game.is_terminal(node.state):
             return node
 
-        unexplored_actions = [action for action in possible_actions if action not in node.children.values()]
-        if len(unexplored_actions) == 0:
-            return node
-
-        selected_action = random.choice(unexplored_actions) # HACK : Maybe slow
+        # Otherwise, select a random unexplored action and create a new child node for it
+        selected_action = random.choice([value for key,value in node.children.items() if key.N == 0]) # HACK : Maybe slow
 
         new_state = self.game.result(node.state, selected_action)
         new_node = Node(node, new_state)
-
         new_node.children = { Node(new_node, self.game.result(new_node.state, action)): action for action in self.game.actions(new_node.state) }
-
         return new_node
 
     def simulate(self, state):
@@ -149,8 +145,7 @@ class UCTAgent(Agent):
             action = random.choice(self.game.actions(current_state)) # HACK : Maybe slow
             current_state = self.game.result(current_state, action)
             rounds += 1
-
-        return self.game.utility(current_state, (state.to_move+1) % 2)
+        return self.game.utility(current_state, not self.player)
 
     def back_propagate(self, result, node):
         """Propagates the result of a simulation back up the tree, updating node statistics.
@@ -166,8 +161,10 @@ class UCTAgent(Agent):
         """
         node.N += 1  # Increment visit count
 
-        if result == 1:  # The player won
-            node.U += 1
+        if self.game.utility(node.state, self.player) != result:
+            node.U += 1  # Increment utility
+            print(node.U)
+        
 
         # If the node has a parent, recursively propagate the result to the parent node
         if node.parent is not None:
