@@ -1,6 +1,7 @@
 from agent import Agent
 import random
 import math
+import numpy as np
 
 class Node:
     """Node Class
@@ -95,12 +96,10 @@ class UCTAgent(Agent):
             Node: The selected leaf node.
         """
         while node.children:
-            unexplored_children = [child for child in node.children if child.N == 0]
-            if unexplored_children:
+            if any(child.N == 0 for child in node.children):
                 return node
-            ucb1_values = {child: self.UCB1(child) for child in node.children}
-            max_child = max(ucb1_values, key=ucb1_values.get)
-            node = max_child
+            #node = node.children[np.argmax(np.array([self.UCB1(child) for child in node.children]))]
+            node = node.children.get(max(node.children, key=lambda n: self.UCB1(n)))
         return node
     
     def expand(self, node):
