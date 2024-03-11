@@ -142,7 +142,7 @@ class UCTAgent(Agent):
             float: The utility value of the resulting terminal state in the point of view of the opponent in the original state.
         """
         current_state = state
-        max_rounds = 500
+        max_rounds = 5
         rounds = 0
 
         while not self.game.is_terminal(current_state) and rounds < max_rounds:
@@ -150,7 +150,7 @@ class UCTAgent(Agent):
             current_state = self.game.result(current_state, action)
             rounds += 1
 
-        return self.game.utility(current_state, (state.to_move + 1) % 2)
+        return self.game.utility(current_state, (state.to_move+1) % 2)
 
     def back_propagate(self, result, node):
         """Propagates the result of a simulation back up the tree, updating node statistics.
@@ -166,8 +166,7 @@ class UCTAgent(Agent):
         """
         node.N += 1  # Increment visit count
 
-        # Update win count if the result indicates a win for the player whose action led to this node
-        if result == 1:
+        if result == 1:  # The player won
             node.U += 1
 
         # If the node has a parent, recursively propagate the result to the parent node
