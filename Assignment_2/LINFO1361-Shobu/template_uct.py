@@ -115,14 +115,15 @@ class UCTAgent(Agent):
         Returns:
             Node: The child node selected. If the node is at a terminal state, the node itself is returned.
         """
-        if self.game.is_terminal(node.state) or not self.game.actions(node.state):
+        possible_actions = self.game.actions(node.state)
+        if self.game.is_terminal(node.state) or len(possible_actions) == 0:
             return node
 
-        unexplored_actions = [action for action in self.game.actions(node.state) if action not in node.children.values()]
-        if not unexplored_actions:
+        unexplored_actions = [action for action in possible_actions if action not in node.children.values()]
+        if len(unexplored_actions) == 0:
             return node
 
-        selected_action = random.choice(unexplored_actions)
+        selected_action = random.choice(unexplored_actions) # HACK : Maybe slow
 
         new_state = self.game.result(node.state, selected_action)
         new_node = Node(node, new_state)
@@ -145,7 +146,7 @@ class UCTAgent(Agent):
         rounds = 0
 
         while not self.game.is_terminal(current_state) and rounds < max_rounds:
-            action = random.choice(self.game.actions(current_state))
+            action = random.choice(self.game.actions(current_state)) # HACK : Maybe slow
             current_state = self.game.result(current_state, action)
             rounds += 1
 
