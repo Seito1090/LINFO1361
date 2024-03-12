@@ -94,16 +94,11 @@ class UCTAgent(Agent):
         Returns:
             Node: The selected leaf node.
         """
-        # Base case: if the leaf is the root node
-        # Base case: if the node is a leaf node (i.e., it has no children)
-        # Base case: if the node is a terminal node
-        if node.N == 0 or len(node.children) == 0 or self.game.is_terminal(node.state):
-            return node
         
-        # Base case: if the node is a root node with only one child
-        if node.N <= 2 and node.parent == None:
+        # If the node is a terminal node or a node with no simulations, return it
+        if self.game.is_terminal(node.state) or any(child.N == 0 for child in node.children):
             return node
-
+            
         # Otherwise, recursively select the child node with the highest UCB1 value
         max_child = max(node.children, key=lambda n: self.UCB1(n))
         return self.select(max_child)
@@ -150,7 +145,7 @@ class UCTAgent(Agent):
             float: The utility value of the resulting terminal state in the point of view of the opponent in the original state.
         """
         current_state = state
-        max_rounds = 50
+        max_rounds = 500
         rounds = 0
 
         total_utility = 0
