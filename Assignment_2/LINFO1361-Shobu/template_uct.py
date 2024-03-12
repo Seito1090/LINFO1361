@@ -1,7 +1,6 @@
 from agent import Agent
 import random
 import math
-import numpy as np
 
 class Node:
     """Node Class
@@ -95,10 +94,16 @@ class UCTAgent(Agent):
         Returns:
             Node: The selected leaf node.
         """
-        # If the node is a terminal node or a node with no simulations, return it
-        if self.game.is_terminal(node.state) or any(child.N == 0 for child in node.children):
+        # Base case: if the leaf is the root node
+        # Base case: if the node is a leaf node (i.e., it has no children)
+        # Base case: if the node is a terminal node
+        if node.N == 0 or len(node.children) == 0 or self.game.is_terminal(node.state):
             return node
-            
+        
+        # Base case: if the node is a root node with only one child
+        if node.N <= 2 and node.parent == None:
+            return node
+
         # Otherwise, recursively select the child node with the highest UCB1 value
         max_child = max(node.children, key=lambda n: self.UCB1(n))
         return self.select(max_child)
@@ -120,13 +125,20 @@ class UCTAgent(Agent):
         if self.game.is_terminal(node.state):
             return node
 
-        # Otherwise, select a random unexplored action and create a new child node for it
-        selected_action = random.choice([value for key,value in node.children.items() if key.N == 0]) # HACK : Maybe slow
+        # Selects the first unvisited child node
+        selected_action_key = next((child for child in node.children.keys() if child.N == 0), None)
+        #selected_action_key = max(node.children, key=lambda n: self.UCB1(n)) if node.children else None
 
-        new_state = self.game.result(node.state, selected_action)
-        new_node = Node(node, new_state)
-        new_node.children = { Node(new_node, self.game.result(new_node.state, action)): action for action in self.game.actions(new_node.state) }
-        return new_node
+        #unvisited_children = [child for child in node.children.keys() if child.N == 0]
+        #selected_action_key = random.choice(unvisited_children) if unvisited_children else None
+
+        if selected_action_key is None:
+            return node
+
+        # Expands the selected child node
+        selected_action_key.children.update({ Node(selected_action_key, self.game.result(selected_action_key.state, action)): action for action in self.game.actions(selected_action_key.state) })
+        
+        return selected_action_key
 
     def simulate(self, state):
         """Simulates a random play-through from the given state to a terminal state.
@@ -138,8 +150,22 @@ class UCTAgent(Agent):
             float: The utility value of the resulting terminal state in the point of view of the opponent in the original state.
         """
         current_state = state
-        max_rounds = 5
+        max_rounds = 50
         rounds = 0
+
+        total_utility = 0
+        for _ in range(max_rounds):
+            # Simulate a random action
+            action = random.choice(self.game.actions(current_state))
+            current_state = self.game.result(current_state, action)
+            rounds += 1
+            # If the game is terminal, return the utility of the terminal state and restart the simulation
+            if self.game.is_terminal(current_state):
+                total_utility += self.game.utility(current_state, not self.player)
+                break
+                current_state = state
+
+        return total_utility
 
         while not self.game.is_terminal(current_state) and rounds < max_rounds:
             action = random.choice(self.game.actions(current_state)) # HACK : Maybe slow
@@ -159,13 +185,9 @@ class UCTAgent(Agent):
             result (float): The result of the simulation.
             node (Node): The node to start backpropagation from.
         """
-        node.N += 1  # Increment visit count
-
-        if self.game.utility(node.state, self.player) != result:
-            node.U += 1  # Increment utility
-            print(node.U)
+        node.N += 1  # Increment visit count       
+        node.U += result if node.state.to_move != self.player else 0
         
-
         # If the node has a parent, recursively propagate the result to the parent node
         if node.parent is not None:
             self.back_propagate(result, node.parent)
