@@ -142,27 +142,27 @@ class UCTAgent(Agent):
         """
         current_state = state
         max_rounds = 500
+        max_retry = 1
         rounds = 0
+        retry = 0
 
         total_utility = 0
         for _ in range(max_rounds):
+            if retry >= max_retry:
+                break
+            rounds += 1
+
             # Simulate a random action
             action = random.choice(self.game.actions(current_state))
             current_state = self.game.result(current_state, action)
-            rounds += 1
+            
             # If the game is terminal, return the utility of the terminal state and restart the simulation
             if self.game.is_terminal(current_state):
-                total_utility += self.game.utility(current_state, not self.player)
+                retry+=1
+                total_utility += self.game.utility(current_state, self.game.to_move(state))
                 current_state = state
-                return total_utility
 
         return total_utility
-
-        while not self.game.is_terminal(current_state) and rounds < max_rounds:
-            action = random.choice(self.game.actions(current_state)) # HACK : Maybe slow
-            current_state = self.game.result(current_state, action)
-            rounds += 1
-        return self.game.utility(current_state, not self.player)
 
 
     def back_propagate(self, result, node):
@@ -184,7 +184,7 @@ class UCTAgent(Agent):
 
         # Update utility if the node is a terminal node
         if player_result == node.state.to_move:
-            node.U += result if result > 0 else -result
+            node.U += abs(result)
 
         # If the node has a parent, recursively propagate the result to the parent node
         if node.parent is not None:
@@ -206,4 +206,4 @@ class UCTAgent(Agent):
         if node.N == 0:
             return float('inf')
         else:
-            return node.U / node.N + c * math.sqrt(math.log(node.parent.N) / node.N)
+            return (node.U / node.N) + c * math.sqrt(math.log(node.parent.N) / node.N)
