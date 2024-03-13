@@ -122,10 +122,6 @@ class UCTAgent(Agent):
 
         # Selects the first unvisited child node
         selected_action_key = next((child for child in node.children.keys() if child.N == 0), None)
-        #selected_action_key = max(node.children, key=lambda n: self.UCB1(n)) if node.children else None
-
-        #unvisited_children = [child for child in node.children.keys() if child.N == 0]
-        #selected_action_key = random.choice(unvisited_children) if unvisited_children else None
 
         if selected_action_key is None:
             return node
@@ -145,7 +141,7 @@ class UCTAgent(Agent):
             float: The utility value of the resulting terminal state in the point of view of the opponent in the original state.
         """
         current_state = state
-        max_rounds = 500
+        max_rounds = 5
         rounds = 0
 
         total_utility = 0
@@ -158,15 +154,9 @@ class UCTAgent(Agent):
             if self.game.is_terminal(current_state):
                 total_utility += self.game.utility(current_state, not self.player)
                 break
-                current_state = state
 
         return total_utility
 
-        while not self.game.is_terminal(current_state) and rounds < max_rounds:
-            action = random.choice(self.game.actions(current_state)) # HACK : Maybe slow
-            current_state = self.game.result(current_state, action)
-            rounds += 1
-        return self.game.utility(current_state, not self.player)
 
     def back_propagate(self, result, node):
         """Propagates the result of a simulation back up the tree, updating node statistics.
@@ -180,12 +170,20 @@ class UCTAgent(Agent):
             result (float): The result of the simulation.
             node (Node): The node to start backpropagation from.
         """
-        node.N += 1  # Increment visit count       
-        node.U += result if node.state.to_move != self.player else 0
+        # Increment visit count         
+        node.N += 1  
         
+        print(result, "and player to move is :", node.state.to_move)
+
+        if node.state.to_move == result:
+            current_U_score = node.U
+            update = (current_U_score + 1) / node.N
+            node.U = update
+
         # If the node has a parent, recursively propagate the result to the parent node
         if node.parent is not None:
             self.back_propagate(result, node.parent)
+
 
     def UCB1(self, node):
         """Calculates the UCB1 value for a given node.
