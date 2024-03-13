@@ -154,6 +154,7 @@ class UCTAgent(Agent):
             if self.game.is_terminal(current_state):
                 total_utility += self.game.utility(current_state, not self.player)
                 current_state = state
+                return total_utility
 
         return total_utility
 
