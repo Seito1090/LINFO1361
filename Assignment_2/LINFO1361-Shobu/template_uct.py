@@ -141,10 +141,10 @@ class UCTAgent(Agent):
             float: The utility value of the resulting terminal state in the point of view of the opponent in the original state.
         """
         current_state = state
-        max_rounds = 5
+        max_rounds = 500
         rounds = 0
 
-        utility = 0
+        total_utility = 0
         for _ in range(max_rounds):
             # Simulate a random action
             action = random.choice(self.game.actions(current_state))
@@ -152,9 +152,16 @@ class UCTAgent(Agent):
             rounds += 1
             # If the game is terminal, return the utility of the terminal state and restart the simulation
             if self.game.is_terminal(current_state):
-                return self.game.utility(current_state, not self.player)
+                total_utility += self.game.utility(current_state, not self.player)
+                current_state = state
 
-        return utility
+        return total_utility
+
+        while not self.game.is_terminal(current_state) and rounds < max_rounds:
+            action = random.choice(self.game.actions(current_state)) # HACK : Maybe slow
+            current_state = self.game.result(current_state, action)
+            rounds += 1
+        return self.game.utility(current_state, not self.player)
 
 
     def back_propagate(self, result, node):
@@ -171,8 +178,12 @@ class UCTAgent(Agent):
         """
         # Increment visit count         
         node.N += 1  
-        if int(result) != 0: # case where there was a draw ?
-            node.U = (node.U + result) / node.N # Issue here anyway! have to check the conditions when this applies  
+
+        player_result = 0 if result > 0 else 1
+
+        # Update utility if the node is a terminal node
+        if player_result == node.state.to_move:
+            node.U += result if result > 0 else -result
 
         # If the node has a parent, recursively propagate the result to the parent node
         if node.parent is not None:
