@@ -142,7 +142,7 @@ class UCTAgent(Agent):
         """
         current_state = state
         max_rounds = 500
-        max_retry = 1
+        max_retry = 2
         rounds = 0
         retry = 0
 
@@ -159,10 +159,10 @@ class UCTAgent(Agent):
             # If the game is terminal, return the utility of the terminal state and restart the simulation
             if self.game.is_terminal(current_state):
                 retry+=1
-                total_utility += self.game.utility(current_state, self.game.to_move(state))
+                total_utility += self.game.utility(current_state, not self.player)
                 current_state = state
 
-        return total_utility
+        return total_utility if self.player == 0 else -total_utility
 
 
     def back_propagate(self, result, node):
@@ -184,7 +184,7 @@ class UCTAgent(Agent):
 
         # Update utility if the node is a terminal node
         if player_result == node.state.to_move:
-            node.U += abs(result)
+            node.U += result if result > 0 else -result
 
         # If the node has a parent, recursively propagate the result to the parent node
         if node.parent is not None:
