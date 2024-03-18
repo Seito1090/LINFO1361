@@ -57,7 +57,23 @@ class AI(Agent):
                 for piece in player:
                     game_state[player_id, board_id] |= 1 << 15-piece
         return game_state
+    
+    def get_number_of_pawns(self, game_state):
+        """Returns the number of pawns for each player.
+        
+        Args:
+            game_state (np.ndarray): The board to convert.
 
+        Returns:
+            np.ndarray: The number of pawns for each player, on each board.
+        """
+        nums = np.zeros((4,self.num_players), dtype=np.int8)
+        #np.sum(np.unpackbits(np.array([board_state], dtype=np.uint16).view(np.uint8)))
+        for player_id,player in enumerate(game_state):
+            for board_id, board_value in enumerate(player):
+                nums[board_id, player_id] = np.sum(np.unpackbits(np.array([board_value], dtype=np.uint16).view(np.uint8)))
+        return nums
+    
     def play(self, state, remaining_time):
         """Determines the next action to take in the given state.
 
@@ -70,6 +86,7 @@ class AI(Agent):
         """
         binary_rep = self.shobuState_to_binary_rep(state.board)
         self.print_binary_rep(binary_rep)
+        print(self.get_number_of_pawns(binary_rep))
 
         return state.actions[0] # TODO: Replace this with your algorithm.
         ...
