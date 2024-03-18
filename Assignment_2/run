@@ -11,7 +11,7 @@ else
 fi
 
 OPPONENT_WHITE="alphabeta" # random | alphabeta | mcts | agent | human
-OPPONENT_BLACK="mcts"
+OPPONENT_BLACK="agent"
 
 # Run the program
 $PYHON_TO_USE LINFO1361-Shobu/main.py -d -l log.txt -w $OPPONENT_WHITE -b $OPPONENT_BLACK 
