@@ -32,7 +32,7 @@ class AI(Agent):
                 row = (board_id == 2 or board_id == 3)*4
                 col = (board_id == 1 or board_id == 3)*4
                 for cell_id in range(16):
-                    if board_value & (1 << 15-cell_id):
+                    if board_value & (1 << 15 - cell_id):
                         output[row + cell_id // 4][col + cell_id % 4] = white_pawn if player_id == 0 else black_pawn
 
         for id, row in enumerate(output[::-1]):
@@ -55,9 +55,39 @@ class AI(Agent):
         for board_id,board_section in enumerate(board):
             for player_id,player in enumerate(board_section):
                 for piece in player:
-                    game_state[player_id, board_id] |= 1 << 15-piece
+                    game_state[player_id, board_id] |= 1 << 15 - piece
         return game_state
     
+    def shobuState_to_bool_array(self, board_shobu):
+        """
+        Converts a shobu_board to a boolean array
+        """
+        board_array = np.zeros((self.num_players,4,4,4),dtype=bool)
+        for board_id, board_section in enumerate(board_shobu):
+            for player_id,player in enumerate(board_section):
+                for piece in player:
+                    row = 3 - (piece // 4)
+                    col = piece % 4
+                    board_array[player_id, board_id, row, col] = True
+        return board_array
+
+    def bool_array_to_binary_array(self, board_array):
+        """
+        Converts a boolean array to a binary array, for a shobu board
+        """
+        board_binary = np.zeros((self.num_players,4),dtype=np.int16)
+        for player_id in range(self.num_players):
+            for board_id in range(4):
+                board_binary[player_id, board_id] = np.packbits(board_array[player_id, board_id]).view(np.int16) 
+        return board_binary
+
+    def binary_array_to_bool_array(self, board_binary):
+        board_boolean = np.zeros((self.num_players,4,4,4),dtype=bool)
+        for player_id in range(self.num_players):
+            for board_id in range(4):
+                board_boolean[player_id, board_id] = np.unpackbits(np.array([board_binary[player_id,board_id]], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
+        return board_boolean
+
     def get_number_of_pawns(self, game_state):
         """Returns the number of pawns for each player.
         
@@ -87,6 +117,17 @@ class AI(Agent):
         binary_rep = self.shobuState_to_binary_rep(state.board)
         self.print_binary_rep(binary_rep)
         print(self.get_number_of_pawns(binary_rep))
+
+        data = (self.bool_array_to_binary_array(self.shobuState_to_bool_array(state.board)))
+        print(self.shobuState_to_bool_array(state.board))
+
+        print( self.binary_array_to_bool_array(binary_rep))
+
+        for plate in range(2):
+            for board in range(4):
+                cell_int16 = binary_rep[plate, board]
+                cells = np.unpackbits(np.array([cell_int16], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
+                print(cells)
 
         return state.actions[0] # TODO: Replace this with your algorithm.
         ...
