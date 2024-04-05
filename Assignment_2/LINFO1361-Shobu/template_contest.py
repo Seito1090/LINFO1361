@@ -13,109 +13,6 @@ class AI(Agent):
     """
 
     num_players = 2
-    #     def print_binary_rep(self, game_state):
-    #         """Prints a numpy board.
-
-    #         Args:
-    #             game_state (np.ndarray): The board to print. made of bits 2x4, 2 ints16
-    #         """
-    #         white_pawn = '⚪'
-    #         black_pawn = '⚫'
-    #         empty_cell = '⭕'
-
-    #         print("Board")
-    #         output = [[empty_cell for _ in range(8)] for _ in range(8)]
-
-    #         for player_id,player in enumerate(game_state):
-    #             for board_id, board_value in enumerate(player):
-    #                 row = (board_id == 2 or board_id == 3)*4
-    #                 col = (board_id == 1 or board_id == 3)*4
-    #                 for cell_id in range(16):
-    #                     if board_value & (1 << 15 - cell_id):
-    #                         output[row + cell_id // 4][col + cell_id % 4] = white_pawn if player_id == 0 else black_pawn
-
-    #         for id, row in enumerate(output[::-1]):
-    #             if id == 4:
-    #                 print()
-    #             print(''.join(row[:4]), ' ', ''.join(row[4: 8]))
-                
-    #     def shobuState_to_binary_rep(self, board):
-    #         """Converts a ShobuState to a binarized representation, in a numpy array. (of size play_numx4x2 bytes (8 bytes))
-
-    #         Args:
-    #             board (list(list(set()))): The board to convert.
-
-    #         Returns:
-    #             np.ndarray: The converted state.
-    #         """
-    #         # Each quadrant is described by 2 bytes, and the board is 4x4, and there are 2+ players
-    #         game_state = np.zeros((self.num_players, 4), dtype=np.int16)
-    #         for board_id,board_section in enumerate(board):
-    #             for player_id,player in enumerate(board_section):
-    #                 for piece in player:
-    #                     game_state[player_id, board_id] |= 1 << 15 - piece
-    #         return game_state
-        
-    #     def shobuState_to_bool_array(self, board_shobu):
-    #         """
-    #         Converts a shobu_board to a boolean array
-    #         """
-    #         board_array = np.zeros((self.num_players,4,4,4),dtype=bool)
-    #         for board_id, board_section in enumerate(board_shobu):
-    #             for player_id,player in enumerate(board_section):
-    #                 for piece in player:
-    #                     row = 3 - (piece // 4)
-    #                     col = piece % 4
-    #                     board_array[player_id, board_id, row, col] = True
-    #         return board_array
-
-    #     def bool_array_to_binary_array(self, board_array):
-    #         """
-    #         Converts a boolean array to a binary array, for a shobu board
-    #         """
-    #         board_binary = np.zeros((self.num_players,4),dtype=np.int16)
-    #         for player_id in range(self.num_players):
-    #             for board_id in range(4):
-    #                 board_binary[player_id, board_id] = np.packbits(board_array[player_id, board_id]).view(np.int16) 
-    #         return board_binary
-
-    #     def binary_array_to_bool_array(self, board_binary):
-    #         board_boolean = np.zeros((self.num_players,4,4,4),dtype=bool)
-    #         for player_id in range(self.num_players):
-    #             for board_id in range(4):
-    #                 board_boolean[player_id, board_id] = np.unpackbits(np.array([board_binary[player_id,board_id]], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
-    #         return board_boolean
-
-    #     def get_number_of_pawns(self, game_state):
-    #         """Returns the number of pawns for each player.
-            
-    #         Args:
-    #             game_state (np.ndarray): The board to convert.
-
-    #         Returns:
-    #             np.ndarray: The number of pawns for each player, on each board.
-    #         """
-    #         nums = np.zeros((4,self.num_players), dtype=np.int8)
-    #         #np.sum(np.unpackbits(np.array([board_state], dtype=np.uint16).view(np.uint8)))
-    #         for player_id,player in enumerate(game_state):
-    #             for board_id, board_value in enumerate(player):
-    #                 nums[board_id, player_id] = np.sum(np.unpackbits(np.array([board_value], dtype=np.uint16).view(np.uint8)))
-    #         return nums
-    
-    '''binary_rep = self.shobuState_to_binary_rep(state.board)
-        self.print_binary_rep(binary_rep)
-        print(self.get_number_of_pawns(binary_rep))
-
-        data = (self.bool_array_to_binary_array(self.shobuState_to_bool_array(state.board)))
-        print(self.shobuState_to_bool_array(state.board))
-
-        print( self.binary_array_to_bool_array(binary_rep))
-
-        for plate in range(2):
-            for board in range(4):
-                cell_int16 = binary_rep[plate, board]
-                cells = np.unpackbits(np.array([cell_int16], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
-                print(cells)'''
 
     # ---------------------------------------------- #
     # ------------- Shobu Agent Logic -------------- #
@@ -189,19 +86,20 @@ class AI(Agent):
         for line in output_string:
             print(line)           
 
-    # ---------------------------------------------- #
-    # ----------------- Binary Maks ---------------- #
+    # ----------------------------------------------- #
+    # ----------------- Binary Masks ---------------- #
 
     def binary_mask_init_generation(self):
         """Generates all masks needed for the binary representation of the board
         Must only be called once, and the masks must be stored in a variable
         
         Returns:
-            tuple(np.ndarray[4,4,8,4], np.ndarray[4,4,8,4], np.ndarray[4,4,8]): (mask_origins, masks, mask_results)
+            tuple(np.ndarray[4,4,8], np.ndarray[4,4,8,4], np.ndarray[4,4,8,4], np.ndarray[4,4,8,4]): (mask_origins, masks, mask_results, mask_push_result)
         """
         masks = np.zeros((4,4,8,4), dtype=np.uint16) # Mask of the move to clear it all, and check where you arrive (has the resulting position, but not the origin)
         mask_results = np.zeros((4,4,8,4), dtype=np.uint16) # Mask for only the resulting position of the stone
         mask_origins = np.zeros((4,4,8), dtype=np.uint16) # Mask for only the original position of the stone
+        mask_push_result = np.zeros((4,4,8,4), dtype=np.uint16) # Mask for only the pushed stone
         for x in range(4):
             for y in range(4):
                 for direction_id, direction in enumerate(self.directions):
@@ -213,11 +111,12 @@ class AI(Agent):
                             break
                         masks[x,y,direction_id,length] = 1 << (4*new_x + new_y)
                         mask_results[x,y,direction_id,length] = 1 << (4*x + y)
+                        if length < 3 and new_x >= 1 and new_x < 3 and new_y >= 1 and new_y < 3:
+                            mask_push_result[x,y,direction_id,length] = 1 << (4*(new_x + direction[0]) + new_y + direction[1])
                     # Mark the origin
                     mask_origins[x,y,direction_id] = origin
 
-        self.masks_tuple = (mask_origins, masks, mask_results)
-        return (mask_origins, masks, mask_results) # tuple of arrays
+        self.masks_tuple = (mask_origins, masks, mask_results, mask_push_result)
     
     def binary_mask_filter(self, binary_board:np.ndarray, player_id:int, passive_board:int, passive_stone:int, active_board:int, active_stone:int):
         """Filters the masks to get only the valid ones for a move
@@ -232,7 +131,7 @@ class AI(Agent):
             active_stone (int): The active stone
 
         Returns:
-            list(tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The filtered masks (mask_o, mask, mask_r, direction, length, passive_board, passive_stone, active_board, active_stone
+            list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The filtered masks (mask_o, mask, mask_r, direction, length, passive_board, passive_stone, active_board, active_stone
         """
         x_passive = passive_stone // 4
         y_passive = passive_stone % 4
@@ -250,17 +149,22 @@ class AI(Agent):
             return []
         masked_results = []
         ennemy_player_id = self.next_player(player_id)
-        mask_origins, masks, mask_results = self.masks_tuple
+        mask_origins, masks, mask_results, mask_push_result = self.masks_tuple
         # Check if the passive stone will not push a ennemy stone
         for direction_id in range(8):
             for length_id in range(4):
+                # Check if the path is clear as a passive stone
                 if binary_board[ennemy_player_id, passive_board] & masks[x_passive, y_passive, direction_id, length_id]:
                     continue
-                if np.sum(np.unpackbits(binary_board[player_id, active_board] & masks[x_active, y_active, direction_id, length_id])) > 1:
+                # Check that the stone can attack (not more than 1 stone), and that if you push a stone, it is valid
+                if np.sum(np.unpackbits((binary_board[player_id, active_board] & masks[x_active, y_active, direction_id, length_id]) 
+                        | (mask_push_result[x_active, y_active, direction_id, length_id] & binary_board[ennemy_player_id, active_board])
+                        | (mask_push_result[x_active, y_active, direction_id, length_id] & binary_board[player_id, active_board]), axis=1)) > 1:
                     continue
                 ellement = (mask_origins[x_passive, y_passive, direction_id],
                             masks[x_passive, y_passive, direction_id, length_id], 
                             mask_results[x_passive, y_passive, direction_id, length_id],
+                            mask_push_result[x_passive, y_passive, direction_id, length_id],
                             direction_id,
                             length_id,
                             passive_board,
@@ -270,6 +174,19 @@ class AI(Agent):
                 masked_results.append(ellement) # TODO : Check if pushing a stone is valid
         return masked_results
 
+    def binary_mask_sort(self, binary_board:np.ndarray, player_id:int, actions:list):
+        """Sorts the actions based on a heuristic
+        
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The binary board
+            player_id (int): The player id
+            actions (list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone))): The actions to sort
+
+        Returns:
+            list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The sorted masks
+        """
+        return sorted(actions, key=lambda x: self.binary_heuristic_evaluation(self.binary_apply_action(binary_board, player_id, x), player_id), reverse=True)
+
     def binary_mask_actions(self, binary_board:np.ndarray, player_id:int):
         """Geeenrates all the possible actions for a player
         
@@ -278,7 +195,7 @@ class AI(Agent):
             player_id (int): The player id
 
         Returns:
-            list(tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The actions
+            list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The filtered masks
         """
         all_mask_actions = []
         for passive_board in [0,1] if player_id == 0 else [2,3]:
@@ -287,21 +204,8 @@ class AI(Agent):
                     for active_stone in np.where(np.unpackbits(binary_board[player_id, active_board], axis=1))[0]:
                         masks = self.binary_mask_filter(binary_board, player_id, passive_board, passive_stone, active_board, active_stone)
                         all_mask_actions += masks
-        return all_mask_actions
-
-    def binary_mask_sort(self, binary_board:np.ndarray, player_id:int, actions:list):
-        """Sorts the actions based on a heuristic
-        
-        Args:
-            binary_board (np.ndarray[2,4,uint16]): The binary board
-            player_id (int): The player id
-            actions (list(tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone))): The actions to sort
-
-        Returns:
-            list(tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The sorted actions
-        """
-        return sorted(actions, key=lambda x: self.binary_heuristic_evaluation(self.binary_apply_action(binary_board, player_id, x), player_id), reverse=True)
-
+        return self.binary_mask_sort(binary_board, player_id, all_mask_actions)
+    
     def binary_heuristic_evaluation(self, binary_board:np.ndarray, player_id:int):
         """Heuristic evaluation of the binary board
         
@@ -358,7 +262,9 @@ class AI(Agent):
         new_board[player_id, active_board] &= ~mask_o
         new_board[player_id, active_board] |= mask_r
         new_board[self.next_player(player_id), active_board] &= ~mask
-        #TODO : The new pushed next player stone
+        # Push the stone if needed
+        if np.any(binary_board[self.next_player(player_id)] & mask):
+            new_board[self.next_player(player_id), active_board] |= mask_r
         return new_board
 
     def binary_is_terminal(self, binary_board:np.ndarray, player_id:int):
@@ -450,6 +356,8 @@ class AI(Agent):
         pass
     
 
+
+'''
     def bool_action_wrapper(self, passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length):
         return (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
     
@@ -688,8 +596,112 @@ class AI(Agent):
         else:
             new_moves = []
         return (new_board, self.next_player(player_id), 0, 0, new_moves)
+'''
 
+'''
+        def print_binary_rep(self, game_state):
+            """Prints a numpy board.
 
+            Args:
+                game_state (np.ndarray): The board to print. made of bits 2x4, 2 ints16
+            """
+            white_pawn = '⚪'
+            black_pawn = '⚫'
+            empty_cell = '⭕'
+
+            print("Board")
+            output = [[empty_cell for _ in range(8)] for _ in range(8)]
+
+            for player_id,player in enumerate(game_state):
+                for board_id, board_value in enumerate(player):
+                    row = (board_id == 2 or board_id == 3)*4
+                    col = (board_id == 1 or board_id == 3)*4
+                    for cell_id in range(16):
+                        if board_value & (1 << 15 - cell_id):
+                            output[row + cell_id // 4][col + cell_id % 4] = white_pawn if player_id == 0 else black_pawn
+
+            for id, row in enumerate(output[::-1]):
+                if id == 4:
+                    print()
+                print(''.join(row[:4]), ' ', ''.join(row[4: 8]))
+                
+        def shobuState_to_binary_rep(self, board):
+            """Converts a ShobuState to a binarized representation, in a numpy array. (of size play_numx4x2 bytes (8 bytes))
+
+            Args:
+                board (list(list(set()))): The board to convert.
+
+            Returns:
+                np.ndarray: The converted state.
+            """
+            # Each quadrant is described by 2 bytes, and the board is 4x4, and there are 2+ players
+            game_state = np.zeros((self.num_players, 4), dtype=np.int16)
+            for board_id,board_section in enumerate(board):
+                for player_id,player in enumerate(board_section):
+                    for piece in player:
+                        game_state[player_id, board_id] |= 1 << 15 - piece
+            return game_state
+        
+        def shobuState_to_bool_array(self, board_shobu):
+            """
+            Converts a shobu_board to a boolean array
+            """
+            board_array = np.zeros((self.num_players,4,4,4),dtype=bool)
+            for board_id, board_section in enumerate(board_shobu):
+                for player_id,player in enumerate(board_section):
+                    for piece in player:
+                        row = 3 - (piece // 4)
+                        col = piece % 4
+                        board_array[player_id, board_id, row, col] = True
+            return board_array
+
+        def bool_array_to_binary_array(self, board_array):
+            """
+            Converts a boolean array to a binary array, for a shobu board
+            """
+            board_binary = np.zeros((self.num_players,4),dtype=np.int16)
+            for player_id in range(self.num_players):
+                for board_id in range(4):
+                    board_binary[player_id, board_id] = np.packbits(board_array[player_id, board_id]).view(np.int16) 
+            return board_binary
+
+        def binary_array_to_bool_array(self, board_binary):
+            board_boolean = np.zeros((self.num_players,4,4,4),dtype=bool)
+            for player_id in range(self.num_players):
+                for board_id in range(4):
+                    board_boolean[player_id, board_id] = np.unpackbits(np.array([board_binary[player_id,board_id]], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
+            return board_boolean
+
+        def get_number_of_pawns(self, game_state):
+            """Returns the number of pawns for each player.
+            
+            Args:
+                game_state (np.ndarray): The board to convert.
+
+            Returns:
+                np.ndarray: The number of pawns for each player, on each board.
+            """
+            nums = np.zeros((4,self.num_players), dtype=np.int8)
+            #np.sum(np.unpackbits(np.array([board_state], dtype=np.uint16).view(np.uint8)))
+            for player_id,player in enumerate(game_state):
+                for board_id, board_value in enumerate(player):
+                    nums[board_id, player_id] = np.sum(np.unpackbits(np.array([board_value], dtype=np.uint16).view(np.uint8)))
+            return nums
+'''
+'''binary_rep = self.shobuState_to_binary_rep(state.board)
+    self.print_binary_rep(binary_rep)
+    print(self.get_number_of_pawns(binary_rep))
+
+    data = (self.bool_array_to_binary_array(self.shobuState_to_bool_array(state.board)))
+    print(self.shobuState_to_bool_array(state.board))
+
+    print( self.binary_array_to_bool_array(binary_rep))
+
+    for plate in range(2):
+        for board in range(4):
+            cell_int16 = binary_rep[plate, board]
+            cells = np.unpackbits(np.array([cell_int16], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
+            print(cells)'''
 
 ### BINARY ENCODING :
 """
