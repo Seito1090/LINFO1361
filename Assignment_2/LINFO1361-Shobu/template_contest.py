@@ -14,6 +14,11 @@ class AI(Agent):
 
     num_players = 2
 
+    def __init__(self, player, game, max_depth = 2):
+
+        super().__init__(player, game)
+        self.max_depth = max_depth
+
     def print_binary_rep(self, game_state):
         """Prints a numpy board.
 
@@ -40,7 +45,6 @@ class AI(Agent):
                 print()
             print(''.join(row[:4]), ' ', ''.join(row[4: 8]))
             
-
     def shobuState_to_binary_rep(self, board):
         """Converts a ShobuState to a binarized representation, in a numpy array. (of size play_numx4x2 bytes (8 bytes))
 
@@ -114,7 +118,7 @@ class AI(Agent):
         Returns:
             ShobuAction: The chosen action.
         """
-        binary_rep = self.shobuState_to_binary_rep(state.board)
+        '''binary_rep = self.shobuState_to_binary_rep(state.board)
         self.print_binary_rep(binary_rep)
         print(self.get_number_of_pawns(binary_rep))
 
@@ -127,9 +131,9 @@ class AI(Agent):
             for board in range(4):
                 cell_int16 = binary_rep[plate, board]
                 cells = np.unpackbits(np.array([cell_int16], dtype=np.uint16).view(np.uint8), bitorder='little').reshape(4,4)
-                print(cells)
+                print(cells)'''
 
-        return state.actions[0] # TODO: Replace this with your algorithm.
+        return self.dynamic_alpha_beta_search(state, remaining_time)
         ...
 
     # ---------------------------------------------- #
@@ -200,6 +204,60 @@ class AI(Agent):
         _, action = self.dynamic_max_value(bool_state, -float("inf"), float("inf"), 0, offset_time)
         return action
 
+    def dynamic_max_value(self, state, alpha = -float("inf"), beta = float("inf"), depth = 0, offset_time = 0):
+        
+        if self.is_cutoff(state, depth):
+            return self.heuristic_evaluation(state, state.to_move), None
+
+        max_value = alpha
+
+        for action in self.heuristic_move_generation(state, state.to_move):
+            test_state = self.apply_action(state, action)
+            test_value, _ = self.dynamic_min_value(test_state, max_value, beta, depth + 1, offset_time)
+
+            if test_value > max_value:
+                max_value = test_value
+                best_action = action
+            
+            alpha = max(alpha, max_value)
+            if max_value >= beta:
+                return max_value, best_action
+
+        return max_value, best_action
+
+    def dynamic_min_value(self, state, alpha = -float("inf"), beta = float("inf"), depth = 0, offset_time = 0):
+            
+        if self.is_cutoff(state, depth):
+            return self.heuristic_evaluation(state, state.to_move), None
+
+        min_value = beta
+
+        for action in self.heuristic_move_generation(state, state.to_move):
+            test_state = self.apply_action(state, action)
+            test_value, _ = self.dynamic_max_value(test_state, alpha, min_value, depth + 1, offset_time)
+
+            if test_value < min_value:
+                min_value = test_value
+                best_action = action
+            
+            beta = min(beta, min_value)
+            if min_value <= alpha:
+                return min_value, best_action
+
+        return min_value, best_action
+
+    def is_cutoff(self, state, depth):
+        """Determines if the search should be cut off at the current depth.
+
+        Args:
+            state (ShobuState): The current state of the game.
+            depth (int): The current depth in the search tree.
+
+        Returns:
+            bool: True if the search should be cut off, False otherwise.
+        """
+        return self.max_depth == depth or self.game.is_terminal(state)
+
     def heuristic_quadrant(self, board:np.ndarray, player_id:int, quadrant_id:int):
         """Heuristic evaluation of a quadrant of the board.
 
@@ -236,9 +294,10 @@ class AI(Agent):
         for passive_board in [0,1] if player_id == 0 else [2,3]:
             for active_board in [1,3] if passive_board in [0,2] else [0,2]:
                 # Generate all possible actions for the stones of a board
-                for passive_stone in np.where(np.unpackbits(bool_board[player_id, passive_board], axis=1))[0]:
+                print("hey",  bool_board)
+                for passive_stone in np.where(np.unpackbits(bool_board[2], axis=1)):
                     # Generate all possible actions for the stones of the active board
-                    for active_stone in np.where(np.unpackbits(bool_board[player_id, active_board], axis=1))[0]:
+                    for active_stone in np.where(np.unpackbits(bool_board[2], axis=1)):
                         # Test all possible directions and lengths
                         for direction in [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)]: # 8 directions
                             for length in range(1, 4):
