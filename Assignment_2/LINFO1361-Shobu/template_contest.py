@@ -302,3 +302,61 @@ class AI(Agent):
         active_stone_id = (3 - (active_stone // 4), active_stone % 4)
         direction_bool = (direction // 4, direction % 4) # I think this is wrong
         return (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
+
+
+
+
+### BINARY ENCODING :
+"""
+To count the number of pawns in a quadrant, we can use the following code :
+    np.sum(np.unpackbits(np.array([board_state], dtype=np.uint16).view(np.uint8)))
+
+To check if a move will intersect, we can use the following code :
+    if board_ennemy & move_mask(diagonals, lines, ...) :
+        return False
+    
+To pre generate all possible masks for a pawn : 
+    masks = np.zeros((4,4,8), dtype=np.uint16) # 4 length (X) x 4 length (Y) x 8 directions (4 cardinal + 4 diagonals) x 16 bits --> Maximise encoding/decoding
+    mask_results = np.zeros((4,4,8), dtype=np.uint16) # 4 length (X) x 4 length (Y) x 8 directions (4 cardinal + 4 diagonals) x 16 bits --> Maximise encoding/decoding
+    directions = np.array([(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)])
+    for x in range(4):
+        for y in range(4):
+            for direction_id, direction in enumerate(directions):
+                mask = 0
+                result = 0
+                for length in range(1, 5):
+                    new_x = x + length*direction[0]
+                    new_y = y + length*direction[1]
+                    if new_x < 0 or new_x >= 4 or new_y < 0 or new_y >= 4:
+                        break
+                    mask |= 1 << (15 - 4*new_x - new_y)
+                    result |= 1 << (15 - 4*x - y)
+                masks[x,y,direction_id] = mask
+                mask_results[x,y,direction_id] = result
+    return masks, mask_results, directions
+
+To filter the masks :
+==> INPUT : masks, mask_results, directions, board_ennemy, board_player, stone_passive, stone_active, board_passive, board_active
+
+    # WARNING : 2 baords must be checked, the passive board and the active board
+    if stone_passive >= 16 or stone_active >= 16: # 4x4 board
+        return []
+    if board_passive >= 4 or board_active >= 4: # 2x2 boards
+        return []
+    if board_passive % 2 == board_active % 2: # The boards must be on different sides
+        return []
+
+    if player_id == 0 and board_passive >= 2: # White player's passive board is on black player's side
+        return []
+    elif player_id == 1 and board_passive < 2: # Black player's passive board is on white player's side
+        return []
+
+    # Check if the passive stone will not push a ennemy stone
+    if np.any(board_ennemy & masks[stone_passive, board_passive]):
+        return []
+    # Check if the active stone will not push more than one stone
+    if np.any(board_player & masks[stone_active, board_active]):
+        return []
+    return mask_results[stone_active, board_active]
+
+"""
