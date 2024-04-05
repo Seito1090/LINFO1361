@@ -184,7 +184,7 @@ class AI(Agent):
     # ---------------------------------------------- #
     # ------------ Dynamic Alpha Beta -------------- #
 
-    def dynamic_alpha_beta_search(self, bool_state:tuple, offset_time:float):
+    def dynamic_alpha_beta_search(self, shobu_state:tuple, offset_time:float):
         """Implements the alpha-beta pruning algorithm to find the best action.
 
         Optimizations :
@@ -201,18 +201,19 @@ class AI(Agent):
         Returns:
             ShobuAction: The best action as determined by the alpha-beta algorithm.
         """
+        bool_state = self.shobuState2bool(shobu_state)
         _, action = self.dynamic_max_value(bool_state, -float("inf"), float("inf"), 0, offset_time)
         return action
 
     def dynamic_max_value(self, state, alpha = -float("inf"), beta = float("inf"), depth = 0, offset_time = 0):
         
         if self.is_cutoff(state, depth):
-            return self.heuristic_evaluation(state, state.to_move), None
+            return self.heuristic_evaluation(state, state[1]), None
 
         max_value = alpha
 
-        for action in self.heuristic_move_generation(state, state.to_move):
-            test_state = self.apply_action(state, action)
+        for action in self.heuristic_move_generation(state[0], state[1]):
+            test_state = self.apply_action(state[0], action)
             test_value, _ = self.dynamic_min_value(test_state, max_value, beta, depth + 1, offset_time)
 
             if test_value > max_value:
@@ -228,12 +229,12 @@ class AI(Agent):
     def dynamic_min_value(self, state, alpha = -float("inf"), beta = float("inf"), depth = 0, offset_time = 0):
             
         if self.is_cutoff(state, depth):
-            return self.heuristic_evaluation(state, state.to_move), None
+            return self.heuristic_evaluation(state, state[1]), None
 
         min_value = beta
 
-        for action in self.heuristic_move_generation(state, state.to_move):
-            test_state = self.apply_action(state, action)
+        for action in self.heuristic_move_generation(state[0], state[1]):
+            test_state = self.apply_action(state[0], action)
             test_value, _ = self.dynamic_max_value(test_state, alpha, min_value, depth + 1, offset_time)
 
             if test_value < min_value:
@@ -256,7 +257,7 @@ class AI(Agent):
         Returns:
             bool: True if the search should be cut off, False otherwise.
         """
-        return self.max_depth == depth or self.game.is_terminal(state)
+        return self.max_depth == depth # or self.game.is_terminal(state)  # HACK : FIX THIS
 
     def heuristic_quadrant(self, board:np.ndarray, player_id:int, quadrant_id:int):
         """Heuristic evaluation of a quadrant of the board.
@@ -294,10 +295,9 @@ class AI(Agent):
         for passive_board in [0,1] if player_id == 0 else [2,3]:
             for active_board in [1,3] if passive_board in [0,2] else [0,2]:
                 # Generate all possible actions for the stones of a board
-                print("hey",  bool_board)
-                for passive_stone in np.where(np.unpackbits(bool_board[2], axis=1)):
+                for passive_stone in np.where(np.unpackbits(bool_board[1, passive_board], axis=1)):
                     # Generate all possible actions for the stones of the active board
-                    for active_stone in np.where(np.unpackbits(bool_board[2], axis=1)):
+                    for active_stone in np.where(np.unpackbits(bool_board[1, passive_board], axis=1)):
                         # Test all possible directions and lengths
                         for direction in [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)]: # 8 directions
                             for length in range(1, 4):
@@ -351,7 +351,7 @@ class AI(Agent):
         player = state.to_move
         utility = state.utility
         count_boring_actions = state.count_boring_actions
-        return (bool_board, player, utility, count_boring_actions, state.actions)
+        return (bool_board, player, utility, count_boring_actions, state.actions) # BAD ACTION
 
     def shobuAction2boolAction(self, action:tuple):
         passive_board, passive_stone, active_board, active_stone, direction, length = action
