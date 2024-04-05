@@ -137,6 +137,109 @@ class AI(Agent):
         ...
 
     # ---------------------------------------------- #
+    # ------------ Data Format Standard ------------ #
+    
+    # (passive_board, passive_stone, active_board, active_stone, direction, length) => (int, np.ndarray[2], int, np.ndarray[2], np.ndarray[2], int)
+    PB_T, PS_T, AB_T, AS_T, D_T, L_T = range(6) 
+    # (bool_board, player, utility, count_boring_actions, actions) => (np.ndarray[2,4,4,4], int, int, int, list[tuple[6](action)])
+    BRD_T, PLYR_T, UTL_T, CBoA_T, ACTS_T = range(5)
+
+    def bool_action_wrapper(self, passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length):
+        return (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
+    
+    def bool_state_wrapper(self, bool_board, player, utility, count_boring_actions, actions):
+        return (bool_board, player, utility, count_boring_actions, actions)
+    
+    def bool_board_wrapper(self):
+        return np.zeros((2, 4, 4, 4), dtype=bool)
+    
+    def bool_position_wrapper(self, x:int=0, y:int=0):
+        return np.array([x, y], dtype=int)
+
+    def binary_board_wrapper(self):
+        return np.zeros((2, 4), dtype=np.int16)
+    
+    directions = np.array([(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)])
+
+    def binary_mask_init_generation(self):
+        # X, Y, Direction, Length
+        masks = np.zeros((4,4,8,4), dtype=np.uint16) # Mask of the move to clear it all, and check where you arrive (has the resulting position, but not the origin)
+        mask_results = np.zeros((4,4,8,4), dtype=np.uint16) # Mask for only the resulting position of the stone
+        mask_origins = np.zeros((4,4,8), dtype=np.uint16) # Mask for only the original position of the stone
+        for x in range(4):
+            for y in range(4):
+                for direction_id, direction in enumerate(self.directions):
+                    origin = 1 << (15 - 4*x - y)
+                    for length in range(1, 5):
+                        new_x = x + length*direction[0]
+                        new_y = y + length*direction[1]
+                        if new_x < 0 or new_x >= 4 or new_y < 0 or new_y >= 4:
+                            break
+                        masks[x,y,direction_id,length-1] = 1 << (15 - 4*new_x - new_y)
+                        mask_results[x,y,direction_id,length-1] = 1 << (15 - 4*x - y)
+                        mask_origins[x,y,direction_id] = origin
+        return masks, mask_results, mask_origins
+    
+    def binary_mask_filter(self, masks, mask_results, mask_origins, binary_board:np.ndarray, player_id:int, passive_board:int, passive_stone:int, active_board:int, active_stone:int):
+        x_passive = passive_stone // 4
+        y_passive = passive_stone % 4
+        x_active = active_stone // 4
+        y_active = active_stone % 4
+        if passive_stone >= 16 or active_stone >= 16: # 4x4 board
+            return []
+        if passive_board >= 4 or active_board >= 4: # 2x2 boards
+            return []
+        if passive_board % 2 == active_board % 2: # The boards must be on different sides
+            return []
+        if player_id == 0 and passive_board >= 2: # White player's passive board is on black player's side
+            return []
+        elif player_id == 1 and passive_board < 2: # Black player's passive board is on white player's side
+            return []
+        masked_results = [] # list(tuple[4](mask))
+        ennemy_player_id = self.next_player(player_id)
+        # Check if the passive stone will not push a ennemy stone
+        for direction_id in range(8):
+            if binary_board[ennemy_player_id, passive_board] & masks[x_passive, y_passive, direction_id]: # TODO : CHECK ALL LENGTHS
+                continue
+            # Check if the active stone will not push more than one stone
+            if np.sum(np.unpackbits(binary_board[player_id, active_board] & masks[x_active, y_active, direction_id])) > 1:  # TODO : CHECK ALL LENGTHS
+                continue
+            # TODO : the rest
+
+    # ---------------------------------------------- #
+    # ----------- Shobu Agent Interface ------------ #
+    def shobuState2bool(self, state):
+        """Converts a ShobuState to a boolean array.
+
+        Args:
+            state (ShobuState): The state to convert.
+
+        Returns:
+            Tuple: The converted state.
+            (bool_board, player, utility, count_boring_actions, actions)
+        """
+        bool_board = np.zeros((self.num_players, 4, 4, 4), dtype=bool)
+        for board_id, board_section in enumerate(state.board):
+            for player_id,player in enumerate(board_section):
+                for piece in player:
+                    row = 3 - (piece // 4)
+                    col = piece % 4
+                    bool_board[player_id, board_id, row, col] = True
+        player = state.to_move
+        utility = state.utility
+        count_boring_actions = state.count_boring_actions
+        return (bool_board, player, utility, count_boring_actions, state.actions) # BAD ACTION
+
+    def shobuAction2boolAction(self, action:tuple):
+        passive_board, passive_stone, active_board, active_stone, direction, length = action
+        passive_board_id = passive_board
+        passive_stone_id = (3 - (passive_stone // 4), passive_stone % 4)
+        active_board_id = active_board
+        active_stone_id = (3 - (active_stone // 4), active_stone % 4)
+        direction_bool = (direction // 4, direction % 4) # I think this is wrong
+        return (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
+
+    # ---------------------------------------------- #
     # ------------- Transposition Table ------------ #
     transposition_table = dict()
     def transposition_hash(self, bool_board:np.ndarray):
@@ -328,40 +431,6 @@ class AI(Agent):
         else:
             new_moves = []
         return (new_board, self.next_player(player_id), 0, 0, new_moves)
-
-    # ---------------------------------------------- #
-    # ----------- Shobu Agent Interface ------------ #
-    def shobuState2bool(self, state):
-        """Converts a ShobuState to a boolean array.
-
-        Args:
-            state (ShobuState): The state to convert.
-
-        Returns:
-            Tuple: The converted state.
-            (bool_board, player, utility, count_boring_actions, actions)
-        """
-        bool_board = np.zeros((self.num_players, 4, 4, 4), dtype=bool)
-        for board_id, board_section in enumerate(state.board):
-            for player_id,player in enumerate(board_section):
-                for piece in player:
-                    row = 3 - (piece // 4)
-                    col = piece % 4
-                    bool_board[player_id, board_id, row, col] = True
-        player = state.to_move
-        utility = state.utility
-        count_boring_actions = state.count_boring_actions
-        return (bool_board, player, utility, count_boring_actions, state.actions) # BAD ACTION
-
-    def shobuAction2boolAction(self, action:tuple):
-        passive_board, passive_stone, active_board, active_stone, direction, length = action
-        passive_board_id = passive_board
-        passive_stone_id = (3 - (passive_stone // 4), passive_stone % 4)
-        active_board_id = active_board
-        active_stone_id = (3 - (active_stone // 4), active_stone % 4)
-        direction_bool = (direction // 4, direction % 4) # I think this is wrong
-        return (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
-
 
 
 
