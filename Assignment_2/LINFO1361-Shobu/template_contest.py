@@ -132,89 +132,173 @@ class AI(Agent):
         return state.actions[0] # TODO: Replace this with your algorithm.
         ...
 
-
-
-
-
-    from time import time
-
-    MAX_BORING_ACTIONS = 20
-    MAX_DEPTH = 10
-
-    ID_TO_MOVE = 0
-    ID_UTILITY = 1
-    ID_BOARD = 2
-    ID_ACTIONS = 3
-    ID_COUNT_BORING_ACTIONS = 4
-
-    # IDEA : Use a tuple to describe a state, so that we can reference it with 'macros' instead of numbers
-    # Tuples are faster to create than objects, and are hashable -> Zobrist hashing/Transposition tables
-
-    def play_2(self, state, remaining_time):
-        offset_time = self.time() + remaining_time
-        player_id = state.to_move
-        is_winner = (state.utility == 1) & (player_id == 0) | (state.utility == -1) & (player_id == 1)
-
-        adapted_current_state = (state.to_move, state.utility, state.board, state.actions, state.count_boring_actions)
-
-        # Start the simulation
-        return self.simulate(adapted_current_state, player_id, is_winner, offset_time, self.MAX_DEPTH)
+    # ---------------------------------------------- #
+    # ------------- Transposition Table ------------ #
+    transposition_table = dict()
+    def transposition_hash(self, bool_board:np.ndarray):
+        # Zobrist hashing of a 2,4,4,4 boolean ndarray of a Shobu board
+        return hash(bool_board.tostring())
     
-    def simulate(self, state, player_id, is_winner, offset_time, height):
-        # If we are too deep in the simulation, return None
-        if height <= 0: return None
-        # If the action leads to a stalemate or is boring, stop the simulation
-        if state[self.ID_COUNT_BORING_ACTIONS] > self.MAX_BORING_ACTIONS: return None
-        # Scoring board for actions
-        scores = np.zeros(len(state[self.ID_ACTIONS]))
-        # Get all actions possible
-        for id, action in enumerate(state[self.ID_ACTIONS]):
-            # If the time is up, return the best action
-            if self.time() > offset_time: return None
-            # Get the next state
-            next_state = self.generate_next_state(state, action, self.change_player(player_id))
-            # simulate the next state
-            next_action = self.simulate(next_state, self.change_player(player_id), is_winner, offset_time, height - 1)
-            # Score how good the action is
-            scores[id] = self.score_player(state, action, next_state, player_id)
-        
-        # Return the best action
-        return state.actions[np.argmax(scores)] # ?????
-        
-    def change_player(self, player_id):
+    def transposition_lookup(self, bool_board:np.ndarray):
+        return self.transposition_table.get(self.transposition_hash(bool_board), None)
+    
+    def transposition_store(self, bool_board:np.ndarray, value):
+        self.transposition_table[self.transposition_hash(bool_board)] = value
+   
+    # ---------------------------------------------- #
+    # ----------------- Move Checking -------------- #
+
+    def next_player(self, player_id:int):
         return 1 - player_id
-    
-    def generate_next_state(self, state, action, player_id): # PRUNING HERE ?
-        new_board = state[self.ID_BOARD].copy()
-        # Apply the action
-        new_board[action[0]] = new_board[action[0]].replace(action[1], '')
-        new_board[action[2]] = new_board[action[2]] + action[1]
-        # Update the actions
-        new_actions = self.game.actions(new_board) # ?????????????????
-        # New Utility
-        new_utility = self.game.utility(new_board, player_id) # ?????????????????
-        # Update the count of boring actions
-        count_boring_actions = state[self.ID_COUNT_BORING_ACTIONS] + 1 if len(new_actions) == 1 else 0
-        # Return the new state
-        return (player_id, new_utility, new_board, new_actions, count_boring_actions)
-    
-    def score_player(self, state, action, next_state, player_id): # EVAL HERE ?
-        min_stones_white = 4
-        min_stones_black = 4
 
-        # Just did what the pdf said
-        for singleBoard in range(4):
-            white_stones, black_stones = next_state[self.ID_BOARD][singleBoard]
-            if len(white_stones) < min_stones_white:
-                min_stones_white = len(white_stones)
-            if len(black_stones) < min_stones_black:
-                min_stones_black = len(black_stones)
-        
-        # To make the relative score on the player id (0 or 1)
-        if player_id == 0:
-            score = (min_stones_white - min_stones_black) / 1.0
-        else:
-            score = (min_stones_black - min_stones_white) / 1.0
-        
+    def is_valid_move(self, bool_board:np.ndarray, player_id:int, bool_action:tuple):
+        # bool_action : (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
+
+        # Check if the action is valid
+        passive_new_pos = bool_action[1] + bool_action[4]*bool_action[5]
+        active_new_pos  = bool_action[3] + bool_action[4]*bool_action[5]
+        if any(passive_new_pos <= 0) or any(passive_new_pos >= 3) or any(active_new_pos <= 0) or any(active_new_pos >= 3):
+            return False
+        passive_board = bool_board[player_id, bool_action[0]]
+        active_board = bool_board[player_id, bool_action[2]]
+        # Check if the passive board is valid compared to the active board
+        if player_id == 0 and bool_action[0] >= 2: # White player's passive board is on black player's side
+            return False
+        elif player_id == 1 and bool_action[0] < 2: # Black player's passive board is on white player's side
+            return False
+        # Check if the active board is not aligned with the passive board
+        if bool_action[0] % 2 == bool_action[2] % 2:
+            return False
+        # Check if the passive stone will not push a ennemy stone
+        if passive_new_pos in np.where(np.unpackbits(bool_board[self.next_player(player_id), bool_action[0]], axis=1))[0]: # TODO : CHECK IF IT WORKS
+            return False
+        # Check if the active stone will not push more than one stone
+        if active_new_pos in np.where(np.unpackbits(bool_board[player_id, bool_action[2]], axis=1))[0]: # TODO : CHECK IF IT WORKS
+            return False
+        return True
+
+    # ---------------------------------------------- #
+    # ------------ Dynamic Alpha Beta -------------- #
+
+    def dynamic_alpha_beta_search(self, bool_state:tuple, offset_time:float):
+        """Implements the alpha-beta pruning algorithm to find the best action.
+
+        Optimizations :
+            - Transposition table
+            - Iterative deepening
+            - Dynamic Move Ordering
+            - Quiescennce search
+            - Heuristic evaluation function
+            - Killer moves
+
+        Args:
+            bool_state: The current game state.
+
+        Returns:
+            ShobuAction: The best action as determined by the alpha-beta algorithm.
+        """
+        _, action = self.dynamic_max_value(bool_state, -float("inf"), float("inf"), 0, offset_time)
+        return action
+
+    def heuristic_quadrant(self, board:np.ndarray, player_id:int, quadrant_id:int):
+        """Heuristic evaluation of a quadrant of the board.
+
+        Objective :
+            - Defend as much as possible
+            - Attack as much as possible
+            - If the enemy is close, attack
+        """
+        number_of_pawns = np.sum(np.unpackbits(board[player_id, quadrant_id], axis=1))
+        number_of_enemy_pawns = np.sum(np.unpackbits(board[self.next_player(player_id), quadrant_id], axis=1))
+        smallest_distance = 4 # Max distance
+        for player_pawn in np.where(np.unpackbits(board[player_id, quadrant_id], axis=1))[0]: # TODO : WILL HAVE TO CHECK
+            for enemy_pawn in np.where(np.unpackbits(board[self.next_player(player_id), quadrant_id], axis=1))[0]:
+                distance = abs(player_pawn - enemy_pawn)
+                if distance < smallest_distance:
+                    smallest_distance = distance
+        # ---------------------------------------------------------
+        score = (5-number_of_pawns)**2 # Defend as much as possible
+        score += (5 - number_of_enemy_pawns) # Attack as much as possible
+        score += (4-smallest_distance) # if the enemy is close, attack
         return score
     
+    def heuristic_evaluation(self, bool_board:np.ndarray, player_id:int):
+        # Fuse all heuristic evaluations of the quadrants (We can do here the iterative deepening, using the transposition table)
+        score = 0
+        for quadrant_id in range(4):
+            score += self.heuristic_quadrant(bool_board, player_id, quadrant_id)
+        return score
+
+    def heuristic_move_generation(self, bool_board:np.ndarray, player_id:int):
+        action_score = []
+        best_score = -float('inf')
+        # Generate all possible actions for the player
+        for passive_board in [0,1] if player_id == 0 else [2,3]:
+            for active_board in [1,3] if passive_board in [0,2] else [0,2]:
+                # Generate all possible actions for the stones of a board
+                for passive_stone in np.where(np.unpackbits(bool_board[player_id, passive_board], axis=1))[0]:
+                    # Generate all possible actions for the stones of the active board
+                    for active_stone in np.where(np.unpackbits(bool_board[player_id, active_board], axis=1))[0]:
+                        # Test all possible directions and lengths
+                        for direction in [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)]: # 8 directions
+                            for length in range(1, 4):
+                                action = (passive_board, passive_stone, active_board, active_stone, direction, length)
+                                # If the action is valid, evaluate it, and add it to the list
+                                if self.is_valid_move(bool_board, player_id, action):
+                                    action_and_score = (action, self.heuristic_evaluation(self.apply_action(bool_board, player_id, action, False), player_id))
+                                    action_score.append(action_and_score)
+                                    best_score = max(best_score, action_and_score[1])
+
+        actions = [action for action,_ in sorted(action_score, key=lambda x: x[1], reverse=True)]
+        return actions, best_score
+    
+    def apply_action(self, bool_board:np.ndarray, player_id:int, bool_action:tuple, generate_new_moves:bool=True):
+        new_board = bool_board.copy()
+        passive_new_pos = bool_action[1] + bool_action[3]*bool_action[4]
+        active_new_pos  = bool_action[3] + bool_action[3]*bool_action[4]
+        # When passive, only update the old and new positions
+        new_board[player_id, bool_action[0], bool_action[1]] = False
+        new_board[player_id, bool_action[2], passive_new_pos] = True
+        # When active, update in a line from the original position to the new position
+        for distance in range(0, bool_action[5]):
+            new_board[player_id, bool_action[2], bool_action[3] + distance*bool_action[4]] = False
+        new_board[player_id, bool_action[2], active_new_pos] = True
+        # Generate new moves if needed
+        if generate_new_moves:
+            new_moves = self.heuristic_move_generation(new_board, player_id)
+        else:
+            new_moves = []
+        return (new_board, self.next_player(player_id), 0, 0, new_moves)
+
+    # ---------------------------------------------- #
+    # ----------- Shobu Agent Interface ------------ #
+    def shobuState2bool(self, state):
+        """Converts a ShobuState to a boolean array.
+
+        Args:
+            state (ShobuState): The state to convert.
+
+        Returns:
+            Tuple: The converted state.
+            (bool_board, player, utility, count_boring_actions, actions)
+        """
+        bool_board = np.zeros((self.num_players, 4, 4, 4), dtype=bool)
+        for board_id, board_section in enumerate(state.board):
+            for player_id,player in enumerate(board_section):
+                for piece in player:
+                    row = 3 - (piece // 4)
+                    col = piece % 4
+                    bool_board[player_id, board_id, row, col] = True
+        player = state.to_move
+        utility = state.utility
+        count_boring_actions = state.count_boring_actions
+        return (bool_board, player, utility, count_boring_actions, state.actions)
+
+    def shobuAction2boolAction(self, action:tuple):
+        passive_board, passive_stone, active_board, active_stone, direction, length = action
+        passive_board_id = passive_board
+        passive_stone_id = (3 - (passive_stone // 4), passive_stone % 4)
+        active_board_id = active_board
+        active_stone_id = (3 - (active_stone // 4), active_stone % 4)
+        direction_bool = (direction // 4, direction % 4) # I think this is wrong
+        return (passive_board_id, passive_stone_id, active_board_id, active_stone_id, direction_bool, length)
