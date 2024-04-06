@@ -371,7 +371,7 @@ class AI(Agent):
         Args:
             binary_board (np.ndarray[2,4,uint16]): The binary board
             player_id (int): The player id
-            action_mask_tuple (tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
+            action_mask_tuple (tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
         Returns:
             np.ndarray[2,4,uint16]: The new binary board
         """
@@ -388,6 +388,24 @@ class AI(Agent):
         if np.any(binary_board[self.next_player(player_id)] & mask):
             new_board[self.next_player(player_id), active_board] |= mask_r
         return new_board
+    
+    def binary_apply_action_to_state(self, binary_board:np.ndarray, player_id:int, action_mask_tuple:tuple):
+        """Applies the action to the binary board
+
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The binary board
+            player_id (int): The player id (of that board)
+            action (tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
+
+        Returns:
+            np.ndarray[2,4,uint16]: The new binary board
+        """
+        new_board = self.binary_apply_action(binary_board, action_mask_tuple)
+        new_to_move = self.next_player(player_id)
+        new_utility = self.binary_is_terminal(new_board, new_to_move) # UTILITY
+        new_actions = self.binary_mask_actions(new_board, new_to_move)
+        return (new_board, new_to_move, new_utility, new_actions)
+
 
     def binary_is_terminal(self, binary_board:np.ndarray, player_id:int):
         """Determines if the game is over.
@@ -426,7 +444,7 @@ class AI(Agent):
 
         Args:
             binary_board (np.ndarray[2,4,uint16]): The binary board
-            action (tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
+            action (tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
             player_id (int): The player id
 
         Returns:
@@ -458,7 +476,7 @@ class AI(Agent):
         
         Args:
             binary_board (np.ndarray[2,4,uint16]): The binary board
-            action (tuple[9](uint16(mask_o), uint16(mask), uint16(mask_r), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
+            action (tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The action to apply
             player_id (int): The player id
             utility (int): The utility of the game state
             max_depth (int): The max depth
@@ -518,7 +536,7 @@ class AI(Agent):
 
         actions = self.binary_mask_actions(binary_board, player_id)
 
-        for action in actions:
+        for action_id, action in enumerate(actions):
             test_board = self.binary_apply_action(binary_board, player_id, action)
             test_value, _ = self.binary_min_value(test_board, (player_id + 1) % 2, max_value, beta, depth + 1, remaining_time)
 
