@@ -46,9 +46,12 @@ class AI(Agent):
         binary_actions = self.binary_action_from_shobu_action(binary_board, state.to_move, state.actions)
         binary_state = self.binary_state_wrapper(binary_board, state.to_move, state.utility, binary_actions)
 
+        self.print_binary_board(binary_board)
+        self.print_mask(46)
+
         # Simulations to find the best action
         best_action_idx = self.binary_aplha_beta_search(binary_state, state.to_move, remaining_time)
-        
+
         if best_action_idx is None:
             return None
         return state.actions[best_action_idx]
@@ -96,7 +99,7 @@ class AI(Agent):
                 mask |= 1 << (passive_stone + i*direction)
             mask_r = 1 << (passive_stone + length*direction)
             # Add a pushing action if needed (no other check since its already been done in the shobu action generation)
-            if np.any(mask & binary_board[self.next_player(player_id), active_board]):
+            if mask & binary_board[self.next_player(player_id), active_board]:
                 mask_p = 1 << (passive_stone + (length+1)*direction)
             else:
                 mask_p = 0
@@ -110,19 +113,39 @@ class AI(Agent):
         Args:
             binary_board (np.ndarray[2,4,uint16]): The binary board        
         """
-        quadrants_player_0 = np.unpackbits(binary_board[0], axis=1)
-        quadrants_player_1 = np.unpackbits(binary_board[1], axis=1)
-        
+        print("\tWhite : ◉ \n\tBlack : ◎ \n\tEmpty : ▢")
+
         output_string = ["" for _ in range(9)]
+        output_string[4] = "-----------------"*2
         for line_id in range(8):
             true_line_id = line_id + line_id // 4
             for quadrant_id in [2,3] if line_id >= 4 else [0,1]:
-                output_string[true_line_id] += " ".join([str(int(quadrants_player_0[quadrant_id, line_id])) for _ in range(4)])
-                output_string[true_line_id] += " "
-                output_string[true_line_id] += " ".join([str(int(quadrants_player_1[quadrant_id, line_id])*2) for _ in range(4)])
-        
-        for line in output_string:
+                for bit_in_quad in range(4):
+                    white = (binary_board[0,quadrant_id] >> ((line_id % 4)*4 + bit_in_quad)) & 1
+                    black = (binary_board[1,quadrant_id] >> ((line_id % 4)*4 + bit_in_quad)) & 1
+                    if white:
+                        output_string[true_line_id] += "◉ "
+                    elif black:
+                        output_string[true_line_id] += "◎ "
+                    else:
+                        output_string[true_line_id] += "▢ "
+                output_string[true_line_id] += "|"
+
+        for line in output_string[::-1]:
             print(line)           
+
+    def print_mask(self, mask:np.uint16):
+        """Prints the mask
+
+        Args:
+            mask (np.uint16): The mask to print
+        """
+        lines = ["" for _ in range(4)]
+        for i in range(4):
+            for j in range(4):
+                lines[i] += str((mask >> (4*i + j)) & 1) + " "
+        for line in lines[::-1]:
+            print(line)
 
     # ----------------------------------------------- #
     # ----------------- Binary Masks ---------------- #
@@ -237,7 +260,7 @@ class AI(Agent):
         """
         return np.sum([self.binary_heuristic_quadrant(binary_board, player_id, quadrant_id) for quadrant_id in range(4)])
 
-    def binary_pawns_count_quadrant(self, binary_board:np.ndarray, quadrant_id:int):
+    def binary_pawns_count_quadrant(self, binary_board:np.ndarray, player_id:int, quadrant_id:int):
         """Counts the number of pawns on the board
         
         Args:
@@ -247,13 +270,8 @@ class AI(Agent):
         Returns:
             int: The number of pawns
         """
-        white_pawns_sum = 0 
-        black_pawns_sum = 0
-        for _ in range(4):
-            if _ == quadrant_id:
-                white_pawns_sum += int.bit_count(int(binary_board[0][0][_]))
-                black_pawns_sum += int.bit_count(int(binary_board[0][1][_]))
-        
+        white_pawns_sum = int.bit_count(binary_board[0][player_id][quadrant_id]) 
+        black_pawns_sum = int.bit_count(binary_board[1][player_id][quadrant_id])
         return [white_pawns_sum, black_pawns_sum]
 
     def binary_manual_transform(self, binary_board, player_id:int, quadrant:int):
