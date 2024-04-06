@@ -23,7 +23,7 @@ class AI(Agent):
     masks_tuple = None
     binary_transposition_table = None
 
-    def __init__(self):
+    def __init__(self, player, state):
         self.max_depth = 2
         self.binary_transposition_table = dict()
         self.binary_mask_init_generation()
@@ -47,7 +47,7 @@ class AI(Agent):
         binary_state = self.binary_state_wrapper(binary_board, state.to_move, state.utility, binary_actions)
 
         # Simulations to find the best action
-        best_action_idx = self.binary_aplha_beta_search(binary_state, remaining_time)
+        best_action_idx = self.binary_aplha_beta_search(binary_state, state.to_move, remaining_time)
         
         if best_action_idx is None:
             return None
@@ -55,6 +55,9 @@ class AI(Agent):
 
     # ---------------------------------------------- #
     # -------------- Shobu to Binary --------------- #
+    def next_player(self, player_id:int):
+        return 1 - player_id
+
     def binary_board_from_shobu_board(self, shobu_board):
         """ Converts a shobu board to a binary board
         
@@ -234,6 +237,25 @@ class AI(Agent):
         """
         return np.sum([self.binary_heuristic_quadrant(binary_board, player_id, quadrant_id) for quadrant_id in range(4)])
 
+    def binary_pawns_count_quadrant(self, binary_board:np.ndarray, quadrant_id:int):
+        """Counts the number of pawns on the board
+        
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The binary board
+            player_id (int): The player id
+
+        Returns:
+            int: The number of pawns
+        """
+        white_pawns_sum = 0 
+        black_pawns_sum = 0
+        for _ in range(4):
+            if _ == quadrant_id:
+                white_pawns_sum += int.bit_count(int(binary_board[0][0][_]))
+                black_pawns_sum += int.bit_count(int(binary_board[0][1][_]))
+        
+        return [white_pawns_sum, black_pawns_sum]
+
     def binary_heuristic_quadrant(self, binary_board:np.ndarray, player_id:int, quadrant_id:int):
         """Heuristic evaluation of a quadrant of the board.
 
@@ -242,8 +264,10 @@ class AI(Agent):
             - Attack as much as possible
             - If the enemy is close, attack
         """
-        number_of_pawns = np.sum(np.unpackbits(binary_board[player_id, quadrant_id], axis=1))
-        number_of_enemy_pawns = np.sum(np.unpackbits(binary_board[self.next_player(player_id), quadrant_id], axis=1))
+        self.binary_pawns_count(binary_board, player_id)
+        pawns_in_quadrant = self.binary_pawns_count_quadrant(binary_board, quadrant_id)
+        number_of_pawns = pawns_in_quadrant[player_id]
+        number_of_enemy_pawns = pawns_in_quadrant[self.next_player(player_id)]
         smallest_distance = 4
         for player_pawn in np.where(np.unpackbits(binary_board[player_id, quadrant_id], axis=1))[0]:
             for enemy_pawn in np.where(np.unpackbits(binary_board[self.next_player(player_id), quadrant_id], axis=1))[0]:
@@ -441,7 +465,7 @@ class AI(Agent):
             action to take
         """
         # Check if we have to cut off the search TODO add the time condition 
-        if self.binary_iscutoff(binary_board, depth) != 1: # TODO : check if that's the condition we should be checking !
+        if self.binary_iscutoff(binary_board, player_id, depth) != 1: # TODO : check if that's the condition we should be checking !
             return self.binary_heuristic_evaluation(binary_board, player_id), None
 
         max_value = alpha
