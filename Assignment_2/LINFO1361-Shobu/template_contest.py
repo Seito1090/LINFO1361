@@ -17,8 +17,13 @@ class AI(Agent):
     # ---------------------------------------------- #
     # ------------- Shobu Agent Logic -------------- #
     
-    def __init__(self, player, game):
-        self.num_players = 2
+    directions = np.array([(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)])
+    num_players = 2
+    max_depth = 2
+    masks_tuple = None
+    binary_transposition_table = None
+
+    def __init__(self):
         self.max_depth = 2
         self.binary_transposition_table = dict()
         self.binary_mask_init_generation()
@@ -33,23 +38,23 @@ class AI(Agent):
         Returns:
             ShobuAction: The chosen action.
         """
+        # Convert the board to a binary board
         binary_board = self.binary_board_from_shobu_board(state.board)
-        binary_masks = self.binary_mask_actions(binary_board, state.to_move)
-        return self.dynamic_alpha_beta_search(state, remaining_time)
+
+        # Translate the actions, and don't sort them (so we can select them from the original list)
+        'binary_action_masks = self.binary_mask_actions(binary_board, state.to_move)'
+        binary_actions = self.binary_action_from_shobu_action(binary_board, state.to_move, state.actions)
+        binary_state = self.binary_state_wrapper(binary_board, state.to_move, state.utility, binary_actions)
+
+        # Simulations to find the best action
+        best_action_idx = self.binary_aplha_beta_search(binary_state, remaining_time)
+        
+        if best_action_idx is None:
+            return None
+        return state.actions[best_action_idx]
 
     # ---------------------------------------------- #
-    # ------------ Data Format Standard ------------ #
-    
-    # (passive_board, passive_stone, active_board, active_stone, direction, length) => (int, np.ndarray[2], int, np.ndarray[2], np.ndarray[2], int)
-    PB_T, PS_T, AB_T, AS_T, D_T, L_T = range(6) 
-    # (bool_board, player, utility, count_boring_actions, actions) => (np.ndarray[2,4,4,4], int, int, int, list[tuple[6](action)])
-    BRD_T, PLYR_T, UTL_T, CBoA_T, ACTS_T = range(5)
-
-    # ---------------------------------------------- #
-
-    directions = np.array([(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)])
-    masks_tuple = None
-
+    # -------------- Shobu to Binary --------------- #
     def binary_board_from_shobu_board(self, shobu_board):
         """ Converts a shobu board to a binary board
         
@@ -65,7 +70,37 @@ class AI(Agent):
                 for piece in player:
                     binary_board[player_id, board_quadrant_id] |= 1 <<piece
         return binary_board
-    
+
+    def binary_action_from_shobu_action(self, binary_board:np.ndarray, player_id:int, shobu_action:tuple):
+        """Converts a shobu action to a binary action
+        
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The binary board
+            player_id (int): The player id
+            shobu_action (tuple): The action to convert.
+            
+        Returns:
+            list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The converted action.
+        """
+        actions = []
+        # For every action
+        for action in shobu_action:
+            passive_board, passive_stone, active_board, active_stone, direction, length = action
+            # Compute the different masks
+            mask_o = 1 << passive_stone
+            mask = 0
+            for i in range(1, length+1):
+                mask |= 1 << (passive_stone + i*direction)
+            mask_r = 1 << (passive_stone + length*direction)
+            # Add a pushing action if needed (no other check since its already been done in the shobu action generation)
+            if np.any(mask & binary_board[self.next_player(player_id), active_board]):
+                mask_p = 1 << (passive_stone + (length+1)*direction)
+            else:
+                mask_p = 0
+            # Add the action
+            actions.append((mask_o, mask, mask_r, mask_p, direction, length, passive_board, passive_stone, active_board, active_stone))
+        return actions
+
     def print_binary_board(self, binary_board:np.ndarray):
         """Prints the binary board
 
@@ -187,25 +222,6 @@ class AI(Agent):
         """
         return sorted(actions, key=lambda x: self.binary_heuristic_evaluation(self.binary_apply_action(binary_board, player_id, x), player_id), reverse=True)
 
-    def binary_mask_actions(self, binary_board:np.ndarray, player_id:int):
-        """Geeenrates all the possible actions for a player
-        
-        Args:
-            binary_board (np.ndarray[2,4,uint16]): The binary board
-            player_id (int): The player id
-
-        Returns:
-            list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The filtered masks
-        """
-        all_mask_actions = []
-        for passive_board in [0,1] if player_id == 0 else [2,3]:
-            for active_board in [1,3] if passive_board in [0,2] else [0,2]:
-                for passive_stone in np.where(np.unpackbits(binary_board[player_id, passive_board], axis=1))[0]:
-                    for active_stone in np.where(np.unpackbits(binary_board[player_id, active_board], axis=1))[0]:
-                        masks = self.binary_mask_filter(binary_board, player_id, passive_board, passive_stone, active_board, active_stone)
-                        all_mask_actions += masks
-        return self.binary_mask_sort(binary_board, player_id, all_mask_actions)
-    
     def binary_heuristic_evaluation(self, binary_board:np.ndarray, player_id:int):
         """Heuristic evaluation of the binary board
         
@@ -240,6 +256,39 @@ class AI(Agent):
         score += (4-smallest_distance) # if the enemy is close, attack
         return score
     
+    def binary_mask_actions(self, binary_board:np.ndarray, player_id:int):
+        """Geeenrates all the possible actions for a player
+        
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The binary board
+            player_id (int): The player id
+
+        Returns:
+            list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone)): The filtered masks
+        """
+        all_mask_actions = []
+        for passive_board in [0,1] if player_id == 0 else [2,3]:
+            for active_board in [1,3] if passive_board in [0,2] else [0,2]:
+                for passive_stone in np.where(np.unpackbits(binary_board[player_id, passive_board], axis=1))[0]:
+                    for active_stone in np.where(np.unpackbits(binary_board[player_id, active_board], axis=1))[0]:
+                        masks = self.binary_mask_filter(binary_board, player_id, passive_board, passive_stone, active_board, active_stone)
+                        all_mask_actions += masks
+        return self.binary_mask_sort(binary_board, player_id, all_mask_actions)
+
+    def binary_state_wrapper(self, binary_board:np.ndarray, player_id:int, utility:int, actions:list):
+        """Wraps the binary state
+        
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The binary board
+            player_id (int): The player id
+            utility (int): The utility of the state
+            actions (list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone))): The actions
+
+        Returns:
+            tuple(np.ndarray[2,4,uint16], int, int, list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone))): The wrapped state
+        """  
+        return (binary_board, player_id, utility, actions)  
+
     # ---------------------------------------------- #
     # ------------------- Actions ------------------ #
 
@@ -284,6 +333,9 @@ class AI(Agent):
         else:
             return 0
 
+    # ---------------------------------------------- #
+    # ------------ Transposition Table ------------- #
+
     def binary_concat(self, binary_board:np.ndarray):
         """Concatenates the binary board into a string
         
@@ -309,14 +361,14 @@ class AI(Agent):
         '''
         # idea -> check if in table, then check new state in table
         board_conc = self.binary_concat(binary_board)
-        if (board_conc not in self.transposition_table):
+        if (board_conc not in self.binary_transposition_table):
             return None
 
         newboard = self.binary_apply_action(binary_board, action) # apply the action to the board 
 
         # Check the new board 
         newboard_conc = self.binary_concat(newboard)
-        if (newboard_conc not in self.transposition_table):
+        if (newboard_conc not in self.binary_transposition_table):
             return [newboard, player_id, [], 0, -1, -1]
         
         # Get the information already present in the table
@@ -353,7 +405,7 @@ class AI(Agent):
     # ---------------------------------------------- #
     # ------------ Binary Playing :) --------------- #
 
-    def binary_iscutoff(self, binary_board:np.ndarray, depth:int):
+    def binary_iscutoff(self, binary_board:np.ndarray, player_id:int, depth:int):
         """
         Determines if the search should be cut off at the current depth.
         """
@@ -364,11 +416,11 @@ class AI(Agent):
         """ Determines the next action to take in the given state :) """
         return self.binary_aplha_beta_search(binary_board, player_id, remaining_time)
 
-    def binary_aplha_beta_search(self, binary_board:np.ndarray, player_id:int, remaining_itme:float):
+    def binary_aplha_beta_search(self, binary_board:np.ndarray, player_id:int, remaining_time:float):
         """
         Applies the alpha-beta search algorithm to find the best action
         """
-        actoin = self.binary_max_value(binary_board, player_id, -float("inf"), float("inf"), 0, remaining_time)
+        action = self.binary_max_value(binary_board, player_id, -float("inf"), float("inf"), 0, remaining_time)
         return action
 
     def binary_max_value(self, binary_board:np.ndarray, player_id:int, alpha:float, beta:float, depth:int, remaining_time:float):
