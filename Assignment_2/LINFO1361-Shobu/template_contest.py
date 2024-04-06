@@ -17,7 +17,7 @@ class AI(Agent):
     # ---------------------------------------------- #
     # ------------- Shobu Agent Logic -------------- #
     
-    def __init__(self):
+    def __init__(self, player, game):
         self.num_players = 2
         self.max_depth = 2
         self.binary_transposition_table = dict()
@@ -352,9 +352,101 @@ class AI(Agent):
 
     # ---------------------------------------------- #
     # ------------ Binary Playing :) --------------- #
+
+    def binary_iscutoff(self, binary_board:np.ndarray, depth:int):
+        """
+        Determines if the search should be cut off at the current depth.
+        """
+        iscutoff = 1 if self.max_depth == depth else self.binary_is_terminal(binary_board, player_id)
+        return iscutoff
+
     def binary_play(self, binary_board:np.ndarray, player_id:int, remaining_time:float):
-        pass
-    
+        """ Determines the next action to take in the given state :) """
+        return self.binary_aplha_beta_search(binary_board, player_id, remaining_time)
+
+    def binary_aplha_beta_search(self, binary_board:np.ndarray, player_id:int, remaining_itme:float):
+        """
+        Applies the alpha-beta search algorithm to find the best action
+        """
+        actoin = self.binary_max_value(binary_board, player_id, -float("inf"), float("inf"), 0, remaining_time)
+        return action
+
+    def binary_max_value(self, binary_board:np.ndarray, player_id:int, alpha:float, beta:float, depth:int, remaining_time:float):
+        """Computes the maximum achievable value for the current player at a given state.
+
+        This method recursively explores all possible actions from the current state to find the one that maximizes
+        the player's score.
+
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The current state of the game.
+            player_id (int): The player id.
+            alpha (float): The best value that the maximizing player can guarantee at the current state.
+            beta (float): The best value that the minimizing player can guarantee at the current state.
+            depth (int): The current depth in the search tree.
+            remaining_time (float): The remaining time in seconds that the agent has to make a decision.
+
+        Returns:
+            action to take
+        """
+        # Check if we have to cut off the search TODO add the time condition 
+        if self.binary_iscutoff(binary_board, depth) != 1: # TODO : check if that's the condition we should be checking !
+            return self.binary_heuristic_evaluation(binary_board, player_id), None
+
+        max_value = alpha
+
+        actions = self.binary_mask_actions(binary_board, player_id)
+
+        for action in actions:
+            test_board = self.binary_apply_action(binary_board, player_id, action)
+            test_value, _ = self.binary_min_value(test_board, (player_id + 1) % 2, max_value, beta, depth + 1, remaining_time)
+
+            if test_value > max_value:
+                max_value = test_value
+                best_action = action
+
+            alpha = max(alpha, max_value)
+            if max_value >= beta:
+                return max_value, best_action
+
+        return max_value, best_action
+
+
+    def binary_min_value(self, binary_board:np.ndarray, player_id:int, alpha:float, beta:float, depth:int, remaining_time:float):
+        """
+        Similar to the max value function, but for the minimizing player score, used to calculate the opponent 
+        score.
+
+        Args:
+            binary_board (np.ndarray[2,4,uint16]): The current state of the game.
+            player_id (int): The player id.
+            alpha (float): The best value that the maximizing player can guarantee at the current state.
+            beta (float): The best value that the minimizing player can guarantee at the current state.
+            depth (int): The current depth in the search tree.
+            remaining_time (float): The remaining time in seconds that the agent has to make a decision.
+
+        Returns:
+            action to take
+        """
+        if self.binary_iscutoff(binary_board, depth) != 0:
+            return self.binary_heuristic_evaluation(binary_board, player_id), None
+
+        min_value = beta
+
+        actions = self.binary_mask_actions(binary_board, player_id)
+
+        for action in actions:
+            test_board = self.binary_apply_action(binary_board, player_id, action)
+            test_value, _ = self.binary_max_value(test_board, (player_id + 1) % 2, alpha, min_value, depth + 1, remaining_time)
+
+            if test_value < min_value:
+                min_value = test_value
+                best_action = action
+
+            beta = min(beta, min_value)
+            if min_value <= alpha:
+                return min_value, best_action
+        
+        return min_value, best_action
 
 
 '''
