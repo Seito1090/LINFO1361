@@ -264,7 +264,7 @@ class AI(Agent):
             - Attack as much as possible
             - If the enemy is close, attack
         """
-        self.binary_pawns_count(binary_board, player_id)
+        
         pawns_in_quadrant = self.binary_pawns_count_quadrant(binary_board, quadrant_id)
         number_of_pawns = pawns_in_quadrant[player_id]
         number_of_enemy_pawns = pawns_in_quadrant[self.next_player(player_id)]
