@@ -48,9 +48,11 @@ class AI(Agent):
 
         self.print_binary_board(binary_board)
         self.print_mask(46)
+        #self.print_actions_masks(binary_actions)
+        #self.print_actions_masks(self.binary_mask_actions(binary_board, state.to_move))
 
         # Simulations to find the best action
-        best_action_idx = self.binary_aplha_beta_search(binary_state, state.to_move, remaining_time)
+        best_action_idx = self.binary_aplha_beta_search(binary_state, remaining_time)
 
         if best_action_idx is None:
             return None
@@ -147,8 +149,52 @@ class AI(Agent):
         for line in lines[::-1]:
             print(line)
 
+    def print_actions_masks(self, actions:list):
+        """Prints the actions masks
+        
+        Args:
+            actions (list(tuple[10](uint16(mask_o), uint16(mask), uint16(mask_r), uint16(mask_p), int(direction), int(length), int(passive_board), int(passive_stone), int(active_board), int(active_stone))): The actions to print
+        """
+        for action in actions:
+            print("Passive board : ", action[6])
+            print("Passive stone : ", action[7])
+            print("Active board : ", action[8])
+            print("Active stone : ", action[9])
+            print("Direction : ", action[4])
+            print("Length : ", action[5])
+            print("Mask_o : ")
+            self.print_mask(action[0])
+            print("Mask : ")
+            self.print_mask(action[1])
+            print("Mask_r : ")
+            self.print_mask(action[2])
+            print("Mask_p : ")
+            self.print_mask(action[3])
+
     # ----------------------------------------------- #
     # ----------------- Binary Masks ---------------- #
+
+    def binary_number_to_array(self, number:int, size:int = 16):
+        """Converts a number to an array
+        
+        Args:
+            number (int): The number to convert
+
+        Returns:
+            np.ndarray[4]: The array
+        """
+        return np.array([number >> i & 1 for i in range(size)])
+
+    def binary_number_to_where(self, number:int, size:int = 16):
+        """Converts a number to a where
+        
+        Args:
+            number (int): The number to convert
+
+        Returns:
+            np.ndarray[4]: The array
+        """
+        return np.where(self.binary_number_to_array(number, size))[0]
 
     def binary_mask_init_generation(self):
         """Generates all masks needed for the binary representation of the board
@@ -218,9 +264,9 @@ class AI(Agent):
                 if binary_board[ennemy_player_id, passive_board] & masks[x_passive, y_passive, direction_id, length_id]:
                     continue
                 # Check that the stone can attack (not more than 1 stone), and that if you push a stone, it is valid
-                if np.sum(np.unpackbits((binary_board[player_id, active_board] & masks[x_active, y_active, direction_id, length_id]) 
-                        | (mask_push_result[x_active, y_active, direction_id, length_id] & binary_board[ennemy_player_id, active_board])
-                        | (mask_push_result[x_active, y_active, direction_id, length_id] & binary_board[player_id, active_board]), axis=1)) > 1:
+                if ((binary_board[player_id, active_board] & masks[x_active, y_active, direction_id, length_id]) \
+                        | (mask_push_result[x_active, y_active, direction_id, length_id] & binary_board[ennemy_player_id, active_board])\
+                        | (mask_push_result[x_active, y_active, direction_id, length_id] & binary_board[player_id, active_board])).bit_count() > 1:
                     continue
                 ellement = (mask_origins[x_passive, y_passive, direction_id],
                             masks[x_passive, y_passive, direction_id, length_id], 
@@ -232,7 +278,7 @@ class AI(Agent):
                             passive_stone,
                             active_board,
                             active_stone)
-                masked_results.append(ellement) # TODO : Check if pushing a stone is valid
+                masked_results.append(ellement)
         return masked_results
 
     def binary_mask_sort(self, binary_board:np.ndarray, player_id:int, actions:list):
@@ -260,33 +306,6 @@ class AI(Agent):
         """
         return np.sum([self.binary_heuristic_quadrant(binary_board, player_id, quadrant_id) for quadrant_id in range(4)])
 
-    def binary_pawns_count_quadrant(self, binary_board:np.ndarray, player_id:int, quadrant_id:int):
-        """Counts the number of pawns on the board
-        
-        Args:
-            binary_board (np.ndarray[2,4,uint16]): The binary board
-            player_id (int): The player id
-
-        Returns:
-            int: The number of pawns
-        """
-        white_pawns_sum = int.bit_count(binary_board[0][player_id][quadrant_id]) 
-        black_pawns_sum = int.bit_count(binary_board[1][player_id][quadrant_id])
-        return [white_pawns_sum, black_pawns_sum]
-
-    def binary_manual_transform(self, binary_board, player_id:int, quadrant:int):
-        """Transforms the binary board to a np.ndarray[4,4] for a quadrant"""
-        board = np.zeros((4,4), dtype=int)
-        binary_board = binary_board[0][player_id][quadrant]
-        test = bin(int(binary_board))
-        for _ in range(4):
-            for bit in range(4):
-                board[_][bit] = binary_board & 1
-                binary_board >>= 1
-        
-        return board
-
-
     def binary_heuristic_quadrant(self, binary_board:np.ndarray, player_id:int, quadrant_id:int):
         """Heuristic evaluation of a quadrant of the board.
 
@@ -296,13 +315,11 @@ class AI(Agent):
             - If the enemy is close, attack
         """
         
-        pawns_in_quadrant = self.binary_pawns_count_quadrant(binary_board, quadrant_id)
-        number_of_pawns = pawns_in_quadrant[player_id]
-        number_of_enemy_pawns = pawns_in_quadrant[self.next_player(player_id)]
+        number_of_pawns = (binary_board[player_id, quadrant_id]).bit_count()
+        number_of_enemy_pawns = (binary_board[self.next_player(player_id), quadrant_id]).bit_count()
         smallest_distance = 4
-        self.binary_manual_transform(binary_board, player_id, quadrant_id)
-        for player_pawn in np.where(np.unpackbits(binary_board[player_id, quadrant_id], axis=1))[0]:
-            for enemy_pawn in np.where(np.unpackbits(binary_board[self.next_player(player_id), quadrant_id], axis=1))[0]:
+        for player_pawn in self.binary_number_to_where(binary_board[player_id, quadrant_id]):
+            for enemy_pawn in self.binary_number_to_where(binary_board[self.next_player(player_id), quadrant_id]):
                 distance = abs(player_pawn - enemy_pawn)
                 if distance < smallest_distance:
                     smallest_distance = distance
@@ -325,8 +342,8 @@ class AI(Agent):
         all_mask_actions = []
         for passive_board in [0,1] if player_id == 0 else [2,3]:
             for active_board in [1,3] if passive_board in [0,2] else [0,2]:
-                for passive_stone in np.where(np.unpackbits(binary_board[player_id, passive_board], axis=1))[0]:
-                    for active_stone in np.where(np.unpackbits(binary_board[player_id, active_board], axis=1))[0]:
+                for passive_stone in self.binary_number_to_where(binary_board[player_id, passive_board]):
+                    for active_stone in self.binary_number_to_where(binary_board[player_id, active_board]):
                         masks = self.binary_mask_filter(binary_board, player_id, passive_board, passive_stone, active_board, active_stone)
                         all_mask_actions += masks
         return self.binary_mask_sort(binary_board, player_id, all_mask_actions)
@@ -358,7 +375,7 @@ class AI(Agent):
         Returns:
             np.ndarray[2,4,uint16]: The new binary board
         """
-        mask_o, mask, mask_r, direction, length, passive_board, passive_stone, active_board, active_stone = action_mask_tuple
+        mask_o, mask, mask_r, mask_p, direction, length, passive_board, passive_stone, active_board, active_stone = action_mask_tuple
         new_board = binary_board.copy()
         # When passive, only update the old and new positions
         new_board[player_id, passive_board] &= ~mask_o
@@ -468,14 +485,11 @@ class AI(Agent):
         iscutoff = 1 if self.max_depth == depth else self.binary_is_terminal(binary_board, player_id)
         return iscutoff
 
-    def binary_play(self, binary_board:np.ndarray, player_id:int, remaining_time:float):
-        """ Determines the next action to take in the given state :) """
-        return self.binary_aplha_beta_search(binary_board, player_id, remaining_time)
-
-    def binary_aplha_beta_search(self, binary_board:np.ndarray, player_id:int, remaining_time:float):
+    def binary_aplha_beta_search(self, binary_state:tuple, remaining_time:float):
         """
         Applies the alpha-beta search algorithm to find the best action
         """
+        #  HACK : ICI TU N'UTILISE PAS CORRECTEMENT LES ARGUMENTS DE LA FONCTION
         action = self.binary_max_value(binary_board, player_id, -float("inf"), float("inf"), 0, remaining_time)
         return action
 
