@@ -256,6 +256,19 @@ class AI(Agent):
         
         return [white_pawns_sum, black_pawns_sum]
 
+    def binary_manual_transform(self, binary_board, player_id:int, quadrant:int):
+        """Transforms the binary board to a np.ndarray[4,4] for a quadrant"""
+        board = np.zeros((4,4), dtype=int)
+        binary_board = binary_board[0][player_id][quadrant]
+        test = bin(int(binary_board))
+        for _ in range(4):
+            for bit in range(4):
+                board[_][bit] = binary_board & 1
+                binary_board >>= 1
+        
+        return board
+
+
     def binary_heuristic_quadrant(self, binary_board:np.ndarray, player_id:int, quadrant_id:int):
         """Heuristic evaluation of a quadrant of the board.
 
@@ -269,6 +282,7 @@ class AI(Agent):
         number_of_pawns = pawns_in_quadrant[player_id]
         number_of_enemy_pawns = pawns_in_quadrant[self.next_player(player_id)]
         smallest_distance = 4
+        self.binary_manual_transform(binary_board, player_id, quadrant_id)
         for player_pawn in np.where(np.unpackbits(binary_board[player_id, quadrant_id], axis=1))[0]:
             for enemy_pawn in np.where(np.unpackbits(binary_board[self.next_player(player_id), quadrant_id], axis=1))[0]:
                 distance = abs(player_pawn - enemy_pawn)
