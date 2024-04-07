@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1712500034.14553 "/mnt/nas/Classes/Bac3/LINFO1361/Assignment_2/report_a2.tex" "report_a2.pdf" "report_a2" 1712500043.10491 0
-  "/mnt/nas/Classes/Bac3/LINFO1361/Assignment_2/report_a2.tex" 1712500020 19929 6bf7b232b3928ccf39eed1d28ce0c4ab ""
+["pdflatex"] 1712501926.4687 "/mnt/nas/Classes/Bac3/LINFO1361/Assignment_2/report_a2.tex" "report_a2.pdf" "report_a2" 1712501936.08125 0
+  "/mnt/nas/Classes/Bac3/LINFO1361/Assignment_2/report_a2.tex" 1712501903 20762 ece64bf45050f00b008b00fa7251fc5d ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1689984000 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/ec-iwona.enc" 1276043435 2027 f8708480c25b8150843bb94b8b39c93f ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/mi-iwona.enc" 1276043435 2214 c999541a20776b560b1683fd4d39b07f ""
@@ -181,9 +181,9 @@
   "images/minimax.png" 1712499798 325361 9d3f3bf6ba41ed6ddc1305e01a06ba3d ""
   "images/minimax_labelled.png" 1712414083 372240 069c10e45daa244863f258bbe768d53e ""
   "report.cls" 1710343076 3639 2265e2e097653542dd570826e99c0184 ""
-  "report_a2.aux" 1712500042 1726 7f585524dfd8abb652433692b7d60df0 "pdflatex"
-  "report_a2.out" 1712500042 2109 d80e0681d4015dcd1115fbca81c7db5f "pdflatex"
-  "report_a2.tex" 1712500020 19929 6bf7b232b3928ccf39eed1d28ce0c4ab ""
+  "report_a2.aux" 1712501935 1726 7f585524dfd8abb652433692b7d60df0 "pdflatex"
+  "report_a2.out" 1712501935 2109 d80e0681d4015dcd1115fbca81c7db5f "pdflatex"
+  "report_a2.tex" 1712501903 20762 ece64bf45050f00b008b00fa7251fc5d ""
   (generated)
   "report_a2.aux"
   "report_a2.log"

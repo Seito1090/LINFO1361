@@ -10,8 +10,8 @@ else
     PYHON_TO_USE=$PYTHON_UNIX
 fi
 
-OPPONENT_WHITE="alphabeta" # random | alphabeta | mcts | agent | human
-OPPONENT_BLACK="agent"
+OPPONENT_WHITE="agent" # random | alphabeta | mcts | agent | human
+OPPONENT_BLACK="alphabeta"
 
 # Run the program
 $PYHON_TO_USE LINFO1361-Shobu/main.py -d -l log.txt -w $OPPONENT_WHITE -b $OPPONENT_BLACK 

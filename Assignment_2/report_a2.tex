@@ -308,7 +308,7 @@ Describe in the boxes below what you have implemented for your contest agent. Yo
     Our new heuristic now takes into account multiple factors such as the need to defend, or the possibility of taking down
     an opponent's piece. Whilst not completely solving the issue of the agent getting stuck in loops if played against itself,
     this, along with the increase of the maximum depth allowed, proved to be more efficient than the previous case.
-    To be clear, this heuristic is not by no means perfect, it's just the one that we found to be the most efficient through
+    To be clear, this heuristic is by no means perfect, it's just the one that we found to be the most efficient through
     sheer trial and error.
 
     With this done, we tried to solve the looping issue. Our approach for this was a simple one, if we let the agent do more 
@@ -318,9 +318,9 @@ Describe in the boxes below what you have implemented for your contest agent. Yo
     just timeout. 
 
     The first idea to improve the performance was to implement a way for the agent to not simulate states it had already seen before. 
-    We did this by implementing a dictionnary where we stored the different states and the corresponding utility values for them, 
+    We did this by implementing a dictionnary (transposition table) where we stored the different states and the corresponding utility values for them, 
     this way, if the agent found itself in a state it had already seen, it would just take the utility value from the dictionnary and
-    call it a day. This helped us reduce the occurences of loops quite a bit !
+    call it a day.
 
     That said, even if this sped up the agent in a non negligible way, we still needed to improve it further. This prompted us to 
     implement a way to sort the different actions the agent could take in a way that would try to maximise the preformance 
@@ -337,7 +337,7 @@ Describe in the boxes below what you have implemented for your contest agent. Yo
 
     Our bitmap was used to store the whole game state, this included the representation of the different boards and the 
     different actions to take. We also made the choice to switch our dictionnary to store elements in the form in which
-    they appeared in the bitmap. How did they appear in the bitmap? Well, firstly we stored the different boards 
+    they appeared in the bitmap. How did they appear in the bitmap? Well, firstly we stored the different board quadrants
     as a uint16 value. This allowed us to set bits, that are in the same position as the different pieces on the board, to 1 hence resulting 
     in a uint16 value (4 rows of 4 bits each).  
 \end{answers}
@@ -352,6 +352,8 @@ Describe in the boxes below what you have implemented for your contest agent. Yo
     To those keys we associated an array containing the binary board, the player id (which player is playing at that point),
     another array containing the keys to direct children of this state following actions taken, the utility at this state
     as well as the max and min depth this state can reach. 
+    
+    The effectiveness of all those changes will be discussed in the next section.
 \end{answers}
 
 \begin{answers}[23cm]
@@ -378,21 +380,33 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
     "random" when it can to responsiveness. 
     Here are some stats, the Alpha-Beta agent won 100\% of the games it played against the random agent (shown in the graph below) and it averaged 
     33.60 moves per game when playing white and 16.40 moves per game when playing black. As the time it took to play the games we have an averge of 3.1s per game.
-    \includegraphics[scale=.29]{graphs/abvsrand.png}
+    
+    
+    \includegraphics[scale=.35]{graphs/abvsrand.png}
+
+
     Compared to the MCTS agent, the Alpha-Beta agent was also the best choice. The Alpha-Beta agent had a win rate of 0\% against the MCTS agent and an average of
     33.60 moves per game when playing white and 16.40 moves per game when playing black. The time it took to play the games was 3.1s per game. In other words the basic 
     version of Alpha-beta is the best choice we have when in comes to agents other than ours.
 
+    
+\end{answers}
+
+\begin{answers}[23cm]
+    % TODO continue your answer here
     The second best was the MCTS agent. It had a hard time against Alpha-Beta, but it also did not waver against the random agent. That said it was the slowest of all agents by a margin. 
     Unfortunately, this comes from the nature of the algorithm itself. It does way too much simulations and this is reflected in the time it takes to play a game. 
+    MCTS could be more efficient if a way to select which simulations are done was implemented. That however, is not the case of the basic
+    version. 
+
 \end{answers}
 
 \begin{answers}[23cm]
     % TODO continue your answer here
-\end{answers}
-
-\begin{answers}[23cm]
-    % TODO continue your answer here
+    Now our agent, before we go into the details, we wanted to mention that we ended up not being able to make all of those changes work perfectly. 
+    Our heuristic caused some issues which translated into the algorithm not working as intended and this caused us to not implement the transposition 
+    table proprelly since we wanted to have a fully functionning agent before adding things to it. Given our approach to finetune it, it eventually took 
+    too much time and we ended up with one that does not do exactly what we wanted it to do. This causes our agent to not be as efficient as it could be.
 \end{answers}
 
 
