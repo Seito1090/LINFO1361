@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1712446572.64812 "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_2/report_a2.tex" "report_a2.pdf" "report_a2" 1712446574.10683 0
-  "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_2/report_a2.tex" 1712446572.38954 12223 a62f00464157a60dfad5992d20a6a0aa ""
+["pdflatex"] 1712446745.61789 "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_2/report_a2.tex" "report_a2.pdf" "report_a2" 1712446747.07018 0
+  "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_2/report_a2.tex" 1712446745.29319 12225 11384fc650183b8a9ce02f5c4a5a5f45 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1689984000 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/ec-iwona.enc" 1276043435 2027 f8708480c25b8150843bb94b8b39c93f ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/mi-iwona.enc" 1276043435 2214 c999541a20776b560b1683fd4d39b07f ""
@@ -179,9 +179,9 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1710349941 7871981 c8865c0d6675cbdb6d03667733f53543 ""
   "images/minimax_labelled.png" 1710343076.86055 372240 069c10e45daa244863f258bbe768d53e ""
   "report.cls" 1710343076.86155 3639 2265e2e097653542dd570826e99c0184 ""
-  "report_a2.aux" 1712446573.98156 1726 7f585524dfd8abb652433692b7d60df0 "pdflatex"
-  "report_a2.out" 1712446573.98256 2109 d80e0681d4015dcd1115fbca81c7db5f "pdflatex"
-  "report_a2.tex" 1712446572.38954 12223 a62f00464157a60dfad5992d20a6a0aa ""
+  "report_a2.aux" 1712446746.93822 1726 7f585524dfd8abb652433692b7d60df0 "pdflatex"
+  "report_a2.out" 1712446746.93922 2109 d80e0681d4015dcd1115fbca81c7db5f "pdflatex"
+  "report_a2.tex" 1712446745.29319 12225 11384fc650183b8a9ce02f5c4a5a5f45 ""
   (generated)
   "report_a2.aux"
   "report_a2.log"
