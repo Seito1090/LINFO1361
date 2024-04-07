@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1712446745.61789 "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_2/report_a2.tex" "report_a2.pdf" "report_a2" 1712446747.07018 0
-  "/home/seito/Documents/Classes/LINFO1361/LINFO1361/Assignment_2/report_a2.tex" 1712446745.29319 12225 11384fc650183b8a9ce02f5c4a5a5f45 ""
+["pdflatex"] 1712500034.14553 "/mnt/nas/Classes/Bac3/LINFO1361/Assignment_2/report_a2.tex" "report_a2.pdf" "report_a2" 1712500043.10491 0
+  "/mnt/nas/Classes/Bac3/LINFO1361/Assignment_2/report_a2.tex" 1712500020 19929 6bf7b232b3928ccf39eed1d28ce0c4ab ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1689984000 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/ec-iwona.enc" 1276043435 2027 f8708480c25b8150843bb94b8b39c93f ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/iwona/mi-iwona.enc" 1276043435 2214 c999541a20776b560b1683fd4d39b07f ""
@@ -175,13 +175,15 @@
   "/usr/share/texlive/texmf-dist/tex/latex/url/url.sty" 1388531844 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "/usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty" 1655066402 56148 51a9a8571c07b9921892ae11063ae853 ""
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1689984000 40900 887e0dc8cac988a9e9c574af364cf837 ""
-  "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1702923245.26729 4602016 72a039a3c4aea0fa25b5d35d65138f54 ""
-  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1710349941 7871981 c8865c0d6675cbdb6d03667733f53543 ""
-  "images/minimax_labelled.png" 1710343076.86055 372240 069c10e45daa244863f258bbe768d53e ""
-  "report.cls" 1710343076.86155 3639 2265e2e097653542dd570826e99c0184 ""
-  "report_a2.aux" 1712446746.93822 1726 7f585524dfd8abb652433692b7d60df0 "pdflatex"
-  "report_a2.out" 1712446746.93922 2109 d80e0681d4015dcd1115fbca81c7db5f "pdflatex"
-  "report_a2.tex" 1712446745.29319 12225 11384fc650183b8a9ce02f5c4a5a5f45 ""
+  "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1712483257.32069 4602016 72a039a3c4aea0fa25b5d35d65138f54 ""
+  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1712482885 7871992 37fb11d8e1d3f6ebe3f19d1616ba116c ""
+  "graphs/abvsrand.png" 1712499868 18625 130bc133379767f7c051501682eca74d ""
+  "images/minimax.png" 1712499798 325361 9d3f3bf6ba41ed6ddc1305e01a06ba3d ""
+  "images/minimax_labelled.png" 1712414083 372240 069c10e45daa244863f258bbe768d53e ""
+  "report.cls" 1710343076 3639 2265e2e097653542dd570826e99c0184 ""
+  "report_a2.aux" 1712500042 1726 7f585524dfd8abb652433692b7d60df0 "pdflatex"
+  "report_a2.out" 1712500042 2109 d80e0681d4015dcd1115fbca81c7db5f "pdflatex"
+  "report_a2.tex" 1712500020 19929 6bf7b232b3928ccf39eed1d28ce0c4ab ""
   (generated)
   "report_a2.aux"
   "report_a2.log"

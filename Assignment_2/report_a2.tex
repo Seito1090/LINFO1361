@@ -2,7 +2,7 @@
 \usepackage{marvosym}
 
 \assignment{2}
-\group{1 (Moodle), 39 (INGInious)}
+\group{1 (Moodle), 39 (INGInious)t}
 \students{Victor Carballes Cordoba (NOMA : 34472100)}{Krystian Targonski (NOMA : 42942000)}
 
 \begin{document}
@@ -26,13 +26,14 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
       
       \textit{Assign a numerical value to each node, and indicate the move (i.e.\! 1, 2, or 3) to perform:}
 \end{enumerate}
+    %TODO check
       \begin{answers}[3cm]
       \begin{multicols}{5}
-      \textbf{a: 1} %TODO Insert your answer here
+      \textbf{a: 1} 
+
+      \textbf{b: -12} 
       
-      \textbf{b: -12} %TODO Insert your answer here
-      
-      \textbf{c: 0} %TODO etc.
+      \textbf{c: 0} 
       
       \textbf{d: 1}
       
@@ -76,7 +77,7 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
       
       \textbf{x: -6}
       
-      \textbf{Move: 3} %TODO Insert 1, 2 or 3 here
+      \textbf{Move: 3}
       \end{multicols}
 	  \end{answers}
 
@@ -92,11 +93,12 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
 \end{enumerate}
 
 \begin{answers}[8cm]
+    %TODO check
     \begin{multicols}{2}
     \begin{tabular}{ccc}
     Node & $\alpha$ values & $\beta$ values\\
     \hline
-    \textbf{a} &-inf,-12,0,1  &inf,1 \\ %TODO Insert your answer in the table (example: \textbf{a} & 1, 3, 2 & 5, 4 \\)
+    \textbf{a} &-inf,-12,0,1  &inf,1 \\ 
     \textbf{b} &-inf,-12  &inf,5,-12  \\
     \textbf{c} &-inf,0  &inf,1,0  \\
     \textbf{d} &-inf,1  &inf,1  \\
@@ -129,10 +131,8 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
     \end{tabular}
     \end{multicols}
     
-\textbf{Cuts: 14, 51} %TODO Insert your answer here (example: 2, 4, 6, 8, 10)
+\textbf{Cuts: 14, 51} 
 \end{answers}
-
-
 
 
 
@@ -141,11 +141,12 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
 \end{enumerate}
 
 \begin{answers}[8cm]
+    %TODO check
       \begin{multicols}{2}
       \begin{tabular}{ccc}
       Node & $\alpha$ values & $\beta$ values\\
       \hline
-      \textbf{a} &-inf,1 &inf \\ %TODO Insert your answer in the table (example: \textbf{a} & 1, 3, 2 & 5, 4 \\)
+      \textbf{a} &-inf,1 &inf \\ 
       \textbf{b} &-inf  &inf,-12  \\
       \textbf{c} &-inf  &inf,0  \\
       \textbf{d} &-inf,1  &inf,3,1  \\
@@ -178,7 +179,7 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
       \end{tabular}
       \end{multicols}
       
-\textbf{Cuts: 4, 5, 7} %TODO Insert your answer here (example: 2, 4, 6, 8, 10)
+\textbf{Cuts: 4, 5, 7} 
 \end{answers}
 
 
@@ -186,7 +187,7 @@ Answer to the questions by adding text in the boxes. You may answer in either \t
 
 \clearpage
 \begin{enumerate}
-\item[4.] Is there a node ordering that can lead to a more optimal pruning of the tree
+    \item[4.] Is there a node ordering that can lead to a more optimal pruning of the tree
 (in the sense where the algorithm prunes more branches than in the two other
 considered cases)? If no, explain why. If yes, give a new node ordering and the
 resulting new pruning.  \textbf{(1~pt)}
@@ -195,10 +196,8 @@ resulting new pruning.  \textbf{(1~pt)}
 \end{enumerate}
 
 \begin{answers}[8cm]
-%TODO Insert the path to your image between the {}. 
-% Possibly adjust the scale parameter so your image fits in the box.
-%\includegraphics[scale=.3]{...}
-Yes there is, we can prune a bit more by ordering the nodes in this way and having a right-to-left node expansion
+Yes there is, we can prune a bit more by ordering the nodes in a different way and having a right-to-left node expansion. Here's one such example : (red numbers represent the nodes that were swapped)
+\includegraphics[scale=.29]{images/minimax.png}
 \end{answers}
 
 
@@ -209,9 +208,14 @@ Yes there is, we can prune a bit more by ordering the nodes in this way and havi
 \end{enumerate}
 
 \begin{answers}[9cm]
-%TODO Insert your answer here
-pour minmax utility -> vecteur de plusieurs valeurs 
-une fois qu'on a le vecteur -> chaque joueur à son tour prends l'action la plus efficace pour lui
+If you wish to implement Alpha-Beta for games that allow more than two players, you'd need to change the way the three is made and how the different choices are made. 
+
+Firstly, in order to store the utility of a given state, instead of simply having a singular value stored, you'd need to change it to a vector. 
+This vector would contain the utility of a given state for each player.
+
+Now, you'd also need to modify how the different nodes choose their actions. Insead of following a "classic" minmax strategy, each player now has to take the most valuable action for itself when comparing the corresponding utility values in the vectors
+
+So in other words, you'd need to modify the evaluation that the algorithm does (and the utility as well) followed by a generalisation of the search function to work with multiple players since it is no longer a "min -> max -> min" situation but rather a "min(p1) -> min(p2) -> max(p3)".
 \end{answers}
 
 
@@ -236,10 +240,13 @@ une fois qu'on a le vecteur -> chaque joueur à son tour prends l'action la plus
 \end{enumerate}
 
 \begin{answers}[5cm]
-    % TODO put your answer here
-    First off, we would like to mention that we counted an "action" as a single piece moving, in other words, passive and active moves are both counted ! 
-    In the case where no one has moved yet and our definition of an action, the branching factor is 18*6 = 108.
-\end{answers}
+    % TODO empirical branching factor ???? to check what the f it is 
+    First off, we would like to mention that even with the given additionnal info above on what the branching factor is, there's still some nuance that could be clarified. 
+    As specified, the branching factor is the number of possible moves a player can make and in this case at the beggining of the game. Depending on what we consider a "move" the branching factor will be different.
+
+    That said, we considered a move to be counted whenever one piece moves, which means that a passive and active move combo will count as 2 moves. We analysed the sarting board and saw that the player can make 18 different moves on the light board which can result in the same move on either of the 2 dark boards, hence 18*3 but the same goes if the player choses a passive move on the dark side, so
+    we end up at 18*6 = 108 for the branching factor. As for the empirical branching factor, through testing we found that it was closer to 130 to 150 with spikes over 200 when the game was playing.
+    \end{answers}
 
 
 
@@ -248,8 +255,13 @@ une fois qu'on a le vecteur -> chaque joueur à son tour prends l'action la plus
 \end{enumerate}
 
 \begin{answers}[10cm]
-    % TODO put your answer here
-    Whenever the agent can clearly take an opponent's piece out, it does not always do it if the heuristic is kept simple
+    % TODO check + add things there 
+    We observed during our time with the agent, that a few drawbacks that are notable. One of those drawbacks is the simplicity that the agent has in some situations. Let me explain.
+
+    We observed that with the simple heuristic, the agent had a tendency to "miss" some obvious moves to make. This is probably due to the algorithm having found a "better" state following the move it took. 
+    
+    Another side effect of this, is the agent, whenever playing against himself, tends to find itself in a loop of the same moves over and over again. The heuristic, being "too simple" does not incorporate the detection of such loops and the main algorithm does not either. 
+
 \end{answers}
 
 
@@ -260,12 +272,23 @@ une fois qu'on a le vecteur -> chaque joueur à son tour prends l'action la plus
 
 \begin{answers}[15cm]
     % TODO put your answer here
-    the Monte Carlo Hypothesis suggests that even though individual simulations are purely random and may not accurately reflect optimal or realistic gameplay, their aggregated results provide valuable statistical information about the relative merits of different moves in a given game state. This hypothesis underpins the effectiveness of Monte Carlo Tree Search in decision-making processes, particularly in games and domains where exhaustive search is impractical or infeasible.
-    NO.
-    Complexity of the Game: In games or decision-making problems with extremely high branching factors or complex state spaces, the Monte Carlo Hypothesis may break down. The sheer number of possible outcomes and interactions may make it infeasible to obtain accurate estimates through random sampling alone.
-    (our case here)
-    Strategic Depth: In games that require deep strategic thinking and planning, purely random simulations may not capture the nuances of optimal gameplay. Players may employ sophisticated strategies that are not reflected in the results of random simulations, leading to inaccurate win rate estimates.
+    The hypothesis supporting the use of random simulations to estimate the win rate is that, even if the individual actions are random and unrealistic / suboptimal,
+    their aggregated results will provide statistical information about different moves in a given state. 
+ 
+    As for the question of validity in all cases, it is not. While it may often provide some solid foundation, there are scenarios where it does not apply due to 
+    the specific nature of the game / problem the agent is trying to solve. 
+    
+    Here are some cases where the Monte Carlo Hypothesis may not hold:
+    
+    Complexity of the Game too high: In games or decision-making problems with extremely high branching factors or complex state spaces, the Monte Carlo Hypothesis will not hold. The amount of possible outcomes and interactions will make it complicated to obtain accurate estimates through random sampling alone.
+    In those cases it is better to not use completely random simulations but rather make a more educated guess on which move might be fruitful.
 
+    Depth necessity: There are some games that require deep thinking and planning in order to make the "optimal" move. 
+    In those games, relying on purely random simulations may not reflect the nuances and strategies used for optimal gameplay. 
+    In other words, players may employ sophisticated strategies that are not reflected in the results of random simulations, leading to inaccurate win rate estimates.
+
+    There are other cases in which this hypothesis might not be the best choice, however those explained above are the most
+    suited for the context of the game Shobu.
 \end{answers}
 
 
@@ -275,17 +298,60 @@ Describe in the boxes below what you have implemented for your contest agent. Yo
 
 \begin{answers}[21cm]
     % TODO explain your agent here
-    Talk abt first : - We thought about going with AB since this is what gave us the best results from the get go, MTCS seemed like too much of a bother ^^'
-    Next : We absly did not ctrl C V the AB agent, first we looked at simple imporvements like "hey this heuristic isn't great, let's change it" which lead us to find find thru trial and error the one we got
-    Next : A way to further imporve the AB algorithm was to make improvements to how it ran as it would allow us to go to further dephts than the classic version would hence having a more broad understanding of where its own actions will lead it 
-    Next : This was done thu a binary map, we thought about a bool map but it didn't meet our expectations in performance improvements 
-    Next : Something that we also wanted to improve at all costs was the case where our agent would find itself looping thru the same actions over and over again. to do this we added a way to track already explored scenarios which prevented this behaviour
-    Next : using the previous point, we also took the liberty to stop simulating if we ended up on a state already known ! we just could take back the information we stored about it ! 
-    Next : given the fact that the order in which the agent tries different actions on a given state play a big role, we also implemented a way to sort those in a way that would overall maximise the performance of the model which lead us to further increase the depth at which we could simulate "interesting cases"    
+    When we first started pondering about how to approach the problem with our agent, we thought about the two different algorithms 
+    we did before as a possible starting point. This lead us to consider both pros and cons for each of them and how we could improve them.
+    Eventually, we decided to go with the Alpha-Beta algorithm as it was the one that gave us the best results from the get go
+    while also being the one that we saw the most potential for improvement. 
+    
+    Speaking of improvements, the first thing we wanted to change was the heuristic. As explained before, the heuristic
+    used in the basic Alpha-Beta agent was too simple and did not take into account some important aspects of the game. 
+    Our new heuristic now takes into account multiple factors such as the need to defend, or the possibility of taking down
+    an opponent's piece. Whilst not completely solving the issue of the agent getting stuck in loops if played against itself,
+    this, along with the increase of the maximum depth allowed, proved to be more efficient than the previous case.
+    To be clear, this heuristic is not by no means perfect, it's just the one that we found to be the most efficient through
+    sheer trial and error.
+
+    With this done, we tried to solve the looping issue. Our approach for this was a simple one, if we let the agent do more 
+    moves in its simulations, aka, further increase the depth of the search, it would naturally detect that the actions that lead to 
+    the loop are less optimal that the other choices and by such, not select them. With this, we realised that we would need to 
+    increase the performance of the agent itself, since simply increasing the depth would make the agent run so slow that it would
+    just timeout. 
+
+    The first idea to improve the performance was to implement a way for the agent to not simulate states it had already seen before. 
+    We did this by implementing a dictionnary where we stored the different states and the corresponding utility values for them, 
+    this way, if the agent found itself in a state it had already seen, it would just take the utility value from the dictionnary and
+    call it a day. This helped us reduce the occurences of loops quite a bit !
+
+    That said, even if this sped up the agent in a non negligible way, we still needed to improve it further. This prompted us to 
+    implement a way to sort the different actions the agent could take in a way that would try to maximise the preformance 
+    by allowing the agent to cut off the search earlier (see the exmaples above, in question 1). 
+    This allowed the agent to also be more efficient in its search and made the response time of the agent better. 
+
+    Next, to completely solve the looping issue, we implemented a more direct way to detect if the agent was in a loop by using the 
+    stored information in the dictionnary. If the agent knows that a given set of actions will lead to loop on one he did before,
+    it will simply ignore those actions and try to find a better one. 
+
+    Lastly, we still wanted to improve the performance of the agent even further. We did this by implementing a bitmap. 
+    We did consider a boolean map, however we found that the potential advantages of a bitmap outweighed the complexity
+    this task would bring. 
+
+    Our bitmap was used to store the whole game state, this included the representation of the different boards and the 
+    different actions to take. We also made the choice to switch our dictionnary to store elements in the form in which
+    they appeared in the bitmap. How did they appear in the bitmap? Well, firstly we stored the different boards 
+    as a uint16 value. This allowed us to set bits, that are in the same position as the different pieces on the board, to 1 hence resulting 
+    in a uint16 value (4 rows of 4 bits each).  
 \end{answers}
 
 \begin{answers}[23cm]
     % TODO continue your answer here
+    To differentiate which player's pieces were reprensented in a given uint16 value, we used a mask, thus having a simple 
+    index to know which player's pieces were where. With this representation, we could easily update the dictionnary. 
+    What we did, was create a string that concatenated the different uint16 values of the different boards and used this as the 
+    keys for the dictionnary. This essentially allowed us to have a unique key for each representation of the game without 
+    having to hash the entire state of the game. 
+    To those keys we associated an array containing the binary board, the player id (which player is playing at that point),
+    another array containing the keys to direct children of this state following actions taken, the utility at this state
+    as well as the max and min depth this state can reach. 
 \end{answers}
 
 \begin{answers}[23cm]
@@ -300,6 +366,25 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
 
 \begin{answers}[20cm]
     % TODO explain your comparison method and draw conclusions
+    We compared the different agents by making them play against each other multiple times and in different positions (starting and not starting).
+    We looked at the win rate of each agent, the average number of moves it took for the game to conlcude as well as the reponse time of the agents.
+    First off, about the random agent, it is as its name implies a completely random agent. It generates the different moves it can make
+    and the just picks one at random. By the nature of this philosophy, the random agent is the agent that lost the most games. Well, it's not 
+    suprising since it's just picking random moves, but this also means that its response time is the fastest of all agents since, well, 
+    it doesn't have to think about what move to make.
+
+    That said, now we can focus on the more intersting agents. The Alpha-Beta agent was by far the best choice for Shobu when compared to 
+    "random" and a by the book version of "MCTS". It had the highest win rate, the lowest average number of moves and was on par with 
+    "random" when it can to responsiveness. 
+    Here are some stats, the Alpha-Beta agent won 100\% of the games it played against the random agent (shown in the graph below) and it averaged 
+    33.60 moves per game when playing white and 16.40 moves per game when playing black. As the time it took to play the games we have an averge of 3.1s per game.
+    \includegraphics[scale=.29]{graphs/abvsrand.png}
+    Compared to the MCTS agent, the Alpha-Beta agent was also the best choice. The Alpha-Beta agent had a win rate of 0\% against the MCTS agent and an average of
+    33.60 moves per game when playing white and 16.40 moves per game when playing black. The time it took to play the games was 3.1s per game. In other words the basic 
+    version of Alpha-beta is the best choice we have when in comes to agents other than ours.
+
+    The second best was the MCTS agent. It had a hard time against Alpha-Beta, but it also did not waver against the random agent. That said it was the slowest of all agents by a margin. 
+    Unfortunately, this comes from the nature of the algorithm itself. It does way too much simulations and this is reflected in the time it takes to play a game. 
 \end{answers}
 
 \begin{answers}[23cm]
