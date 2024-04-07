@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.4.7)  7 APR 2024 16:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.4.7)  7 APR 2024 17:27
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -783,7 +783,7 @@ Overfull \vbox (4.2767pt too high) has occurred while \output is active []
 <graphs/abvsrand.png, id=86, 685.1196pt x 688.0104pt>
 File: graphs/abvsrand.png Graphic file (type png)
 <use graphs/abvsrand.png>
-Package pdftex.def Info: graphs/abvsrand.png  used on input line 393.
+Package pdftex.def Info: graphs/abvsrand.png  used on input line 394.
 (pdftex.def)             Requested size: 239.79544pt x 240.80725pt.
  [9 <./graphs/abvsrand.png>]
 Overfull \vbox (4.2767pt too high) has occurred while \output is active []
@@ -804,7 +804,7 @@ Here is how much of TeX's memory you used:
  1137 hyphenation exceptions out of 8191
  99i,14n,103p,567b,669s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/bera/fvmro8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonab.pfb></usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonabi.pfb></usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonar.pfb></usr/share/texlive/texmf-dist/fonts/type1/nowacki/iwona/iwonari.pfb>
-Output written on report_a2.pdf (12 pages, 554649 bytes).
+Output written on report_a2.pdf (12 pages, 555776 bytes).
 PDF statistics:
  143 PDF objects out of 1000 (max. 8388607)
  109 compressed objects within 2 object streams

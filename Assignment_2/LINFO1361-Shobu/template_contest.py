@@ -385,8 +385,10 @@ class AI(Agent):
             #            smallest_distance = distance
             # ---------------------------------------------------------
             score = (number_of_pawns) # Defend as much as possible
-            score += (5 - number_of_enemy_pawns) # Attack as much as possible
+            score += (5 - number_of_enemy_pawns)**2 # Attack as much as possible
             #score += (4-smallest_distance) # if the enemy is close, attack
+            if number_of_enemy_pawns == 1:
+                score *= 10
             return score
 
         def binary_number_to_array(self, number:int, size:int = 16):

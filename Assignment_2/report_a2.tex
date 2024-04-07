@@ -344,8 +344,9 @@ Describe in the boxes below what you have implemented for your contest agent. Yo
 
 \begin{answers}[23cm]
     % TODO continue your answer here
-    To differentiate which player's pieces were reprensented in a given uint16 value, we used a mask, thus having a simple 
-    index to know which player's pieces were where. With this representation, we could easily update the dictionnary. 
+    To store the position of each piece for each player, we used a 2 by 4 numpy array of uint16 values. Using this technique,
+    we only needed to generate masks for collision detection and move repositionning for each quadrant/uint16, that are much faster than for loops in general. 
+    Another advantage of using a bitmap representation as an array of numbers, is the ease of use of a dictionnary/hashmap to store the different states of the game as a transposition table.
     What we did, was create a string that concatenated the different uint16 values of the different boards and used this as the 
     keys for the dictionnary. This essentially allowed us to have a unique key for each representation of the game without 
     having to hash the entire state of the game. 
@@ -385,8 +386,8 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
     \includegraphics[scale=.35]{graphs/abvsrand.png}
 
 
-    Compared to the MCTS agent, the Alpha-Beta agent was also the best choice. The Alpha-Beta agent had a win rate of 0\% against the MCTS agent and an average of
-    33.60 moves per game when playing white and 16.40 moves per game when playing black. The time it took to play the games was 3.1s per game. In other words the basic 
+    Compared to the MCTS agent, the Alpha-Beta agent was also the best choice. The Alpha-Beta agent had a win rate of 100\% against the MCTS agent and an average of
+    17.70 moves per game. The time it took to play the games was 398.5s per game given the time it takes for MCTS to make a move. In other words the basic 
     version of Alpha-beta is the best choice we have when in comes to agents other than ours.
 
     
@@ -394,7 +395,8 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
 
 \begin{answers}[23cm]
     % TODO continue your answer here
-    The second best was the MCTS agent. It had a hard time against Alpha-Beta, but it also did not waver against the random agent. That said it was the slowest of all agents by a margin. 
+    The second best was the MCTS agent. It had a hard time against Alpha-Beta, never winning when playing second, but it did not waver against the random agent and won all the time and did one draw. 
+    That said it was the slowest of all agents by a margin with no real speed up happening in the later parts of the game like our agent (see next page). 
     Unfortunately, this comes from the nature of the algorithm itself. It does way too much simulations and this is reflected in the time it takes to play a game. 
     MCTS could be more efficient if a way to select which simulations are done was implemented. That however, is not the case of the basic
     version. 
@@ -407,6 +409,16 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
     Our heuristic caused some issues which translated into the algorithm not working as intended and this caused us to not implement the transposition 
     table proprelly since we wanted to have a fully functionning agent before adding things to it. Given our approach to finetune it, it eventually took 
     too much time and we ended up with one that does not do exactly what we wanted it to do. This causes our agent to not be as efficient as it could be.
+
+    That said, the performance, our agent had a weird tendency to not always win against our top "classic" agent, Alpha-Beta. It was losing whenever it 
+    was following Alpha-Beta, but winning when leading (playing black, and white pieces respectively). This is one example of our heuristic not working 
+    as intended and it would require more time to finetune it. However, like mentionned, it won all the time against the classic Alpha-Beta agent when playing
+    white pieces. Another issue with the heuristic we had was against the random agent. Our agent was able to effectively maximise its chances to reduce 
+    the opponent's pieces to 1 in each board BUT then it stalled for a draw, each time.  
+    Now back to stats, when playing against Alpha-beta, our agent averaged 20.40 moves per game when winning. Then comparing the responisveness, 
+    the initial move it has to make does take in average 2 sec to make, but once it has made it, the following moves are steadily descreasing in compute time
+    until it reaches what the classic Alpha-Beta is capable of.
+    
 \end{answers}
 
 
