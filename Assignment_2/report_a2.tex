@@ -387,9 +387,10 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
 
 
     Compared to the MCTS agent, the Alpha-Beta agent was also the best choice. The Alpha-Beta agent had a win rate of 100\% against the MCTS agent and an average of
-    17.70 moves per game. The time it took to play the games was 398.5s per game given the time it takes for MCTS to make a move. In other words the basic 
+    17.70 moves per game when playing as white, and 8.6 when playing as black. The time it took to play the games was 398.5s per game given the time it takes for MCTS to make a move. In other words the basic 
     version of Alpha-beta is the best choice we have when in comes to agents other than ours.
 
+    P.S. We did not include more graphs since they all showed almost all the time a winrate of 100\%, which is not very interesting to look at.
     
 \end{answers}
 
@@ -401,10 +402,8 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
     MCTS could be more efficient if a way to select which simulations are done was implemented. That however, is not the case of the basic
     version. 
 
-\end{answers}
+    \vspace{0.5cm}
 
-\begin{answers}[23cm]
-    % TODO continue your answer here
     Now our agent, before we go into the details, we wanted to mention that we ended up not being able to make all of those changes work perfectly. 
     Our heuristic caused some issues which translated into the algorithm not working as intended and this caused us to not implement the transposition 
     table proprelly since we wanted to have a fully functionning agent before adding things to it. Given our approach to finetune it, it eventually took 
@@ -418,6 +417,11 @@ Describe here the comparison of the different agents: random, Alpha-Beta, MCTS a
     Now back to stats, when playing against Alpha-beta, our agent averaged 20.40 moves per game when winning. Then comparing the responisveness, 
     the initial move it has to make does take in average 2 sec to make, but once it has made it, the following moves are steadily descreasing in compute time
     until it reaches what the classic Alpha-Beta is capable of.
+
+\end{answers}
+
+\begin{answers}[23cm]
+    % TODO continue your answer here
     
 \end{answers}
 
