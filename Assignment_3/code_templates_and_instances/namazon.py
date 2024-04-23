@@ -18,7 +18,7 @@ class NAmazonsState:
             for letter in self.board[i]:
                 line += 'A' if letter == 'A' else '#'
             board_str += line + "\n"
-        return board_str
+        return board_str[:-1]
     def __eq__(self, other):
         return self.pieces == other.pieces
     def __lt__(self, other):
@@ -51,7 +51,10 @@ class NAmazonsProblem(Problem):
         self.initial = NAmazonsState()
         self.initial.current_column = 0
         self.initial.rows = [i for i in range(N)]
-        self.initial.board = [[ '#' for i in range(N)] for j in range(N)] 
+        for i in range(0,N,2):
+            self.initial.rows.remove(i)
+            self.initial.rows.append(i)
+        self.initial.board = [[ '#' for _ in range(N)] for _ in range(N)] 
         pass
 
     def actions(self, state):
@@ -96,15 +99,15 @@ class NAmazonsProblem(Problem):
         return len(state.pieces) == self.N
 
     def h(self, node):
-        # Heuristic : Number of spots left (we maximize this value, so we reduce h (to minimize))
-        if self.goal_test(node.state):
+        # Heuristic : Number of spots left (we maximize this value)
+        if self.goal_test(node.state): # HACK : this speeds up computation a little bit
             return 0
-        h = self.N**2
+        h = (self.N - 1)*len(node.state.rows) # We can place N-1 pieces in each row
         for row in node.state.rows:
-            for piece in node.state.pieces:
-                if node.state.board[row][piece[1]] == '#':
-                    h -= 1
-        return h 
+            for column in range(node.state.current_column, self.N):
+                if node.state.board[row][column] == '#':
+                    h += 1
+        return h
 
 #####################
 # Launch the search #
@@ -114,7 +117,7 @@ problem = NAmazonsProblem(int(sys.argv[1]))
 
 start_timer = time.perf_counter()
 
-node = astar_search(problem) # TODO: Launch the search
+node = astar_search(problem) # TODO: Launch the search | astar_search | depth_first_graph_search
 
 end_timer = time.perf_counter()
 
@@ -129,4 +132,4 @@ for n in path:
 
     print()
     
-print("Time: ", end_timer - start_timer)
+#print("Time: ", end_timer - start_timer)
