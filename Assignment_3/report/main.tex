@@ -86,7 +86,7 @@ are visited when performing a uniform-cost graph search, by writing the order nu
 
 
 
-\section{N-Amazons problem (8 pts)}
+\section{N-Amazons problem (8 pts)} % TODO
 
 \begin{enumerate}
   \item Model the N problem as a search problem; describe: \textbf{(2 pts)}
@@ -101,6 +101,19 @@ are visited when performing a uniform-cost graph search, by writing the order nu
 
 \begin{answers}[8cm]
 % Your answer here
+State (and initial values) :
+\begin{itemize}
+    \item internal board, that stores the positions of the amazons, and the forward banned spots.
+    \begin{itemize}
+        \item Initial : empty board of '\#'. Later, occupied spots are "X" and invalid changes are "\$"
+    \end{itemize}
+    \item pieces list (Initial: empty)
+    \item unoccupied rows list (Initial: range from 0 to N)
+    \item current column (also depth) (Initial: 0)
+\end{itemize}
+Actions : Possible actions in a certain state, are described as the spots in the state's column, in the valid rows, that contain '\#'. These actions are applied int he following manner: first, we place the amazon 'A', then, we update with 'X', all columns forward, and all valid rows, using the diagonals and "circle" of possible moves for the amazon. We continue this until we reach a final state.\\
+Goal test : If the number of pieces placed has reached N.\\
+Path cost function : Through testing, the best heuristic found, was all the slots we will have to check, plus the number of valid spots forward. More on this later.
 \end{answers}
 
 
@@ -112,6 +125,9 @@ are visited when performing a uniform-cost graph search, by writing the order nu
 
 \begin{answers}[5cm]
 % Your answer here
+We can consider this a 2D N-state sequence. Since every row and every column has one and only one amazon, this means we can represent it in a 1D N-state sequence. This allows us to use the permutation formula for r=N (as we are only placing one amazon at a time) :
+$$P^N_N = \frac{N!}{(N-r)!} = N!$$
+But this is only true for big N's. Meaning this is a upper-bound to the problem.
 \end{answers}
 
 
@@ -123,6 +139,7 @@ are visited when performing a uniform-cost graph search, by writing the order nu
 
 \begin{answers}[5cm]
 % Your answer here
+First, initialise a buffer to the number of spots that are left, this means, that each depth is absolutely smaller than the previous one. Next, sum the valid spots in the next columns/available rows. This number will always get smaller as the game gets fuller. And return the value after that search. This makes the heuristic admissible, as every step n-1 is bigger than step n.
 \end{answers}
 
 
@@ -148,7 +165,9 @@ are visited when performing a uniform-cost graph search, by writing the order nu
 
 \begin{answers}[8cm]
 % Your answer here
+Weirdly enough,A* most ofthen than not, did not beat the DFS algorithm in therms of time, nor number of explored nodes. This could be due to the very linear problem, and the fact that A* is a best first graph search type algorithm that itself is a sort of BFS, does not help it go faster. Here, DFS is slightly more optimized to the problem.\\
 
+For BFS Graph, we did not do 20, 25 and 30, as the time it would take would be much bigger than 3 minutes, and so we cansider 13 and above as time-outs.
 \end{answers}
 
 ~ 
@@ -160,25 +179,25 @@ are visited when performing a uniform-cost graph search, by writing the order nu
 \multirow{3}{*}{Inst.} & \multicolumn{3}{c||}{$A^{\star}$ Graph}& \multicolumn{3}{c||}{BFS Graph} & \multicolumn{3}{c||}{DFS Graph}\\
  & NS & T(s) & EN & NS & T(s) & EN & NS & T(s) & EN\\
 \hline
-i01 & & & & & & & & & \\
+i01 & 10 & 0.0041 & 70 & 10 & 0.293 & 2327 & 10 & 0.00239& 31\\
 \hline
-i02 & & & & & & & & & \\
+i02 & 11 & 0.0037 & 33 & 11 & 2.792 & 7330 & 11 & 0.00258& 39\\
 \hline
-i03 & & & & & & & & & \\
+i03 & 12 & 0.0114 & 234 & 12 & 35.98 & 24449 & 12 & 0.003& 44\\
 \hline
-i04 & & & & & & & & & \\
+i04 & 13 & 0.0262 & 606 & 13 & 517.476 & 89230 & 13 & 0.0038& 54 \\
 \hline
-i05 & & & & & & & & & \\
+i05 & 20 & 0.0955 & 1477 & 20 & N/A& N/A& 20 & 0.0159& 128\\
 \hline
-i06 & & & & & & & & & \\
+i06 & 25 & 0.0429 & 255 & 25 & N/A& N/A& 25 & 0.0384& 203\\
 \hline
-i07 & & & & & & & & & \\
+i07 & 30 & 0.1243 & 694 & 30 & N/A& N/A& 30 & 0.0752& 293\\
 \hline
-i08 & & & & & & & & & \\
+i08 & ? & ? & ? & ? & ? & ? & ? & ? & ? \\
 \hline
-i09 & & & & & & & & & \\
+i09 & ? & ? & ? & ? & ? & ? & ? & ? & ? \\
 \hline
-i10 & & & & & & & & & \\
+i10 & ? & ? & ? & ? & ? & ? & ? & ? & ? \\
 \hline
 \end{tabular}\\
 
@@ -199,6 +218,7 @@ i10 & & & & & & & & & \\
 
 \begin{answer}
 % ANY COMMENTS ABOUT YOUR CODE
+The code could still be optimised in memory allocation, but since DFS and BFS did not fail, we decided to not implement it, and stay with the more "readable" way for humans (so it can be looked into by modifying the code).
 \end{answer}
 
 \section{Local Search: Sudoku Problem (8 pts)}
