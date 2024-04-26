@@ -15,8 +15,8 @@ def objective_score(board):
     return score
 
 def to_add(board, value, position):
-    ''' This function is used to check if the objective score should be increased or not by returning how much should be added to the score. 
-    This is determined based on the conflicts detected '''
+    ''' This function is used to check if the objective score should be increased or not by returning 
+    how much should be added to the score. This is determined based on the conflicts detected '''
     #initial case where we get the initial values in the board, we want to avoid it at all costs 
     if value == 0:
         return 2
@@ -55,22 +55,65 @@ def generate_possible_values(board, initial_positions):
         possible_values[a].remove(board[a][b])
     return possible_values
 
+def board_to_fill(board):
+    """ This determines if the board is to be filled or not based on the presence of zeros in the board (this is to 
+    eliminate the case where we just run around with the initial board)"""
+    for row in board:
+        if 0 in row:
+            return True 
+    return False
+
+def determine_nbr_changes(temperature):
+    """ This function is used to determine the maximum number of changes to be made to a row based on the temperature, 
+    this is to avoid making too many changes when the temperature is low. """
+    if temperature < 0.001:
+        return 2
+    if temperature < 0.01:
+        return 4
+    if temperature < 0.69:
+        return 6
+    return 8
+
 def generate_neighbor(board, init_positions, possible_values, option):
     """ Generate a neighbor of the board by swapping the values of random cells, excluding the initial positions. """
+    
     admisible = [1,2,3,4,5,6,7,8,9]
     neighbor = [row[:] for row in board]
 
     #Copy the initial values 
     for i,j in init_positions:
         neighbor[i][j] = board[i][j]
+
     
+    #here's the case where the board has to be filled with random values to start the process
+    if board_to_fill(board):
+        for row in range(9):
+            choices = possible_values[row]
+            for col in range(9):
+                if (row,col) not in init_positions:
+                    choice = random.choice(choices)
+                    choices.remove(choice)
+                    neighbor[row][col] = choice
+        return neighbor
+
+    max_changes = determine_nbr_changes(option)
     for row in range(9):
-        choices = possible_values[row]
-        for col in range(9):
-            if (row,col) not in init_positions:
-                choice = random.choice(choices)
-                choices.remove(choice)
-                neighbor[row][col] = choice
+        #print(f"max_changes = {max_changes}")
+        changes_available = len(possible_values[row]) // 2 * 2 if len(possible_values[row]) < max_changes else max_changes // 2 * 2 # determines the number of swaps needed for the row
+        vals_to_swap = random.sample(list(set(possible_values[row])), changes_available)
+        if len(vals_to_swap) < 2:
+            continue
+        idx_to_swap = []
+        for val in vals_to_swap:
+            idx_to_swap.append(board[row].index(val))
+
+        #now that we have the indexes to swap, we can do the swapping (we also know thanks to the way the rows are generated that we have only 1 element of each value in a given row !)
+        
+        for i in range(0, len(idx_to_swap), 2):
+            idx1 = idx_to_swap[i]
+            idx2 = idx_to_swap[i+1]
+            if random.choice([True, False]):
+                neighbor[row][idx1], neighbor[row][idx2] = neighbor[row][idx2], neighbor[row][idx1]
 
     return neighbor
 
@@ -87,16 +130,14 @@ def simulated_annealing_solver(initial_board):
     best_score = current_score
 
     temperature = 1.0
-    cooling_rate = 0.99999 #TODO: Adjust this parameter to control the cooling rate
+    cooling_rate = 0.999991 #TODO: Adjust this parameter to control the cooling rate
 
     while temperature > 0.0001:
 
         try:  
             possible_values = generate_possible_values(current_solution, init_positions)
-            #print(f"possible values are {possible_values}")
-            # TODO: Generate a neighbor (Don't forget to skip non-zeros tiles in the initial board ! It will be verified on Inginious.)
-            neighbor = generate_neighbor(current_solution, init_positions, possible_values, temperature)
-           
+
+            neighbor = generate_neighbor(current_solution, init_positions, possible_values, temperature)           
 
             # Evaluate the neighbor
             neighbor_score = objective_score(neighbor)
@@ -105,7 +146,7 @@ def simulated_annealing_solver(initial_board):
             delta = float(current_score - neighbor_score)
 
             if current_score == 0:
-
+                print(f"Solution found with score {current_score}")
                 return current_solution, current_score
 
             # Accept the neighbor with a probability based on the acceptance probability
@@ -120,8 +161,7 @@ def simulated_annealing_solver(initial_board):
                     best_score = current_score
 
             # Cool down the temperature
-            temperature *= cooling_rate
-            
+            temperature *= cooling_rate 
         except:
 
             print("Break asked")
