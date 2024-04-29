@@ -1,0 +1,119 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage{marvosym}
+\usepackage{hyperref}
+
+\assignment{4}
+\group{...}
+\students{..........}{..........}
+
+\begin{document}
+
+\maketitle
+
+\section{Constraint Programming (7 pts)}
+
+\begin{enumerate}
+\item Identify the goal of each set of constraints in \texttt{sudoku.py}. You can help yourself by looking 
+at \url{https://www.pycsp.org/documentation/constraints/} to find the definition of the different constraints. \textbf{(1 pt)}
+\end{enumerate}
+
+\begin{answers}[4cm]
+Constraints \#1: \\
+Constraints \#2: \\
+Constraints \#3: \\
+Constraints \#4: \\
+\end{answers}
+
+
+
+\begin{enumerate}
+	\setcounter{enumi}{1}
+	\item Find at least \textbf{two different sets of variables} to model the N-amazon problem.
+	For each, describe the variables that you will use to model the N-amazon problem. 
+	For each variable, describe what they represent \textbf{in one sentence}. Give their domains.
+	If you use arrays of variables, you can give one explanation for the array as a whole (and not for each of its elements), 
+	and you need to give its dimensions.
+	Choose the most appropriate set of variables. Justify your choice. \textbf{(2 pt)}
+
+\end{enumerate}
+
+\begin{answers}[6cm]
+
+\end{answers}
+
+\begin{enumerate}
+	\setcounter{enumi}{2}
+	\item  Give the constraints that you will use to model the N-amazon problem.
+	For each constraint, also describe what it enforces.
+	Your model must take account of the already placed amazons. \textbf{(2 pt)}
+
+\end{enumerate}
+
+\begin{answers}[10cm]
+
+\end{answers}
+
+\begin{enumerate}
+	\setcounter{enumi}{3}
+	\item Modify the \texttt{amazons\_cp.py} file to implement your model.
+	Be careful to have the right format for your solution. 
+	Your program will be evaluated on 10 instances of which 5 are hidden. 
+	We expect you to solve all the instances.
+	An unsatisfiable instance is considered as solved if the solver returns \textit{"UNSAT"}. \textbf{(2 pt)}
+\end{enumerate}
+
+\section{Propositional Logic (8 pts)}
+
+\begin{enumerate}
+	\item For each sentence, give its number of valid interpretations i.e., the number of times the sentence is true 
+	(considering for each sentence {\bf all the proposition variables} $A$, $B$, $C$ and $D$). \textbf{(1 pt)}
+\end{enumerate}
+
+\begin{answers}[4cm]
+	$\neg ( A \land B) \lor (\neg B \land C)$: \\
+	$(\neg A \lor B) \Rightarrow C $: \\
+	$( A \lor \neg B) \land (\neg B \Rightarrow \neg C) \land \neg (D \Rightarrow \neg A)$: 
+\end{answers}
+
+\newpage
+\begin{enumerate}
+	\setcounter{enumi}{1}
+	\item Identify the goal of each set of clauses defined in \texttt{graph\_coloring.py}. \textbf{(1 pt)}
+\end{enumerate}
+
+\begin{answers}[4cm]
+	Clauses \#1: \\
+	Clauses \#2: \\
+	Clauses \#3: \\
+\end{answers}
+
+\begin{enumerate}
+	\setcounter{enumi}{2}
+	\item Explain how you can express the N-amazons problem with propositional logic. For each sentence, give its meaning.
+	Your model must take account of the already placed amazons. \textbf{(2 pt)}
+\end{enumerate}
+
+\begin{answers}[10cm]
+
+\end{answers}
+\newpage
+
+\begin{enumerate}
+	\setcounter{enumi}{3}
+	\item Translate your model into Conjunctive Normal Form (CNF). \textbf{(2 pt)}
+\end{enumerate}
+
+\begin{answers}[10cm]
+
+\end{answers}
+
+\begin{enumerate}
+	\setcounter{enumi}{4}
+	\item Modify the function {\tt get\_expression(size)} in \texttt{amazon\_sat.py} such that it outputs a list
+	of clauses modeling the n-amazons problem for the given input.
+	The file \texttt{amazons\_sat.py} is the \emph{only} file that you need to modify to solve this problem. 
+	Your program will be evaluated on 10 instances of which 5 are hidden. We expect you to solve all the instances.
+	An unsatisfiable instance is considered as solved if the solver returns \textit{"UNSAT"}. \textbf{(2 pt)}
+\end{enumerate}
+
+\end{document}
