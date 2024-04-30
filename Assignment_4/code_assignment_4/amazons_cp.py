@@ -173,26 +173,30 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
 
     # Create the variables here
     # Matrix of size x size variables, where each value is 0 or 1
-    board = VarArray(size=(size, size), dom={0, 1})
+    amazons = VarArray(size=(2, size), dom=range(size))
 
     # Collapse the already placed amazons
-    for amazon in placed_amazons:
-        board[amazon[0]][amazon[1]] = None
+    for id, amazon in enumerate(placed_amazons):
+        amazons[0][id].value = amazon[0]
+        amazons[1][id].value = amazon[1]
+
+    scale = 100
 
     satisfy(
         # Write your constraints here
         # ROWS
         # Queen_X_i != queen_X_j
-        [ExactlyOne([board[i][j] for j in range(size)], value=1) for i in range(size)],
+        AllDifferent(amazons[0]),
         # COLUMNS
         # Queen_Y_i != queen_Y_j
-        [ExactlyOne([board[j][i] for j in range(size)], value=1)for i in range(size)],
+        AllDifferent(amazons[1]),
         # DIAGONALS
-        # abs(Queen_X_i - Queen_X_j) = abs(Queen_Y_i  - Queen_Y_j)
-        [ExactlyOne([board[k][l] for k in range(0, size) for l in range(0, size) if abs(k-i) == abs(l-j)], value=1) for i in range(size) for j in range(size)],
+        # abs(Queen_X_i - Queen_X_j) != abs(Queen_Y_i  - Queen_Y_j)
+        [abs(amazons[0][i] - amazons[0][j]) != abs(amazons[1][i] - amazons[1][j]) for i in range(size) for j in range(size) if i != j],
         # CIRCLE
-        # (Queen_X_i - Queen_X_j)^2 + (Queen_Y_i - Queen_Y_j)^2 > 3.5^2 and < 4.2^2
-        [Count([board[k][l] for k in range(0, size) for l in range(0, size) if (k-i)**2 + (l-j)**2 > 3.5**2 and (k-i)**2 + (l-j)**2 < 4.2**2], value=1) == 0 for i in range(size) for j in range(size)]
+        # (Queen_X_i - Queen_X_j)^2 + (Queen_Y_i - Queen_Y_j)^2 < 3.5^2 and > 4.2^2
+        [Or(scale*((amazons[0][i] - amazons[0][j]) ** 2 + (amazons[1][i] - amazons[1][j]) ** 2) < int(scale*(3.5**2)), 
+            scale*((amazons[0][i] - amazons[0][j]) ** 2 + (amazons[1][i] - amazons[1][j]) ** 2) > int(scale*(4.2**2))) for i in range(size) for j in range(size) if i != j]
     )
 
     # output[i][j] == 1 iff there is an amazon at row i and column j
@@ -204,8 +208,7 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
         status = True
         # Fill the output grid with solution
         for i in range(size):
-            for j in range(size):
-                output[i][j] = board[i][j].get_value()
+            output[amazons[0][i].value()][amazons[1][i].value()] = 1
     else:
         status = False
 
