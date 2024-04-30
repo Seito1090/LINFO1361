@@ -172,9 +172,27 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
     """
 
     # Create the variables here
+    # Matrix of size x size variables, where each value is 0 or 1
+    board = VarArray(size=(size, size), dom={0, 1})
+
+    # Collapse the already placed amazons
+    for amazon in placed_amazons:
+        board[amazon[0]][amazon[1]] = None
 
     satisfy(
         # Write your constraints here
+        # ROWS
+        # Queen_X_i != queen_X_j
+        [ExactlyOne([board[i][j] for j in range(size)], value=1) for i in range(size)],
+        # COLUMNS
+        # Queen_Y_i != queen_Y_j
+        [ExactlyOne([board[j][i] for j in range(size)], value=1)for i in range(size)],
+        # DIAGONALS
+        # abs(Queen_X_i - Queen_X_j) = abs(Queen_Y_i  - Queen_Y_j)
+        [ExactlyOne([board[k][l] for k in range(0, size) for l in range(0, size) if abs(k-i) == abs(l-j)], value=1) for i in range(size) for j in range(size)],
+        # CIRCLE
+        # (Queen_X_i - Queen_X_j)^2 + (Queen_Y_i - Queen_Y_j)^2 > 3.5^2 and < 4.2^2
+        [Count([board[k][l] for k in range(0, size) for l in range(0, size) if (k-i)**2 + (l-j)**2 > 3.5**2 and (k-i)**2 + (l-j)**2 < 4.2**2], value=1) == 0 for i in range(size) for j in range(size)]
     )
 
     # output[i][j] == 1 iff there is an amazon at row i and column j
@@ -185,6 +203,9 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
     if solve(solver=CHOCO) is SAT:
         status = True
         # Fill the output grid with solution
+        for i in range(size):
+            for j in range(size):
+                output[i][j] = board[i][j].get_value()
     else:
         status = False
 
