@@ -173,67 +173,47 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
 
     # Create the variables here
     # Array of variables representing the position of the amazons, if an amazon is placed at position i, j then amazons[0][i] == i and amazons[1][i] == j
-    amazons = VarArray(size=(2, size), dom=range(size))
+    grid = VarArray(size=(size, size), dom={0, 1})
 
-    # Collapse the already placed amazons
-    for id, amazon in enumerate(placed_amazons):
-        amazons[0][id].value = amazon[0]
-        amazons[1][id].value = amazon[1]
+    offsets_4x1 = [(i, j) for i in [-4, 4] for j in [-1, 1]] + [(i, j) for i in [-1, 1] for j in [-4, 4]]
+    offsets_3x2 = [(i, j) for i in [-3, 3] for j in [-2, 2]] + [(i, j) for i in [-2, 2] for j in [-3, 3]]
+    offsets = offsets_4x1 + offsets_3x2
 
-    scale = 100
+    all_positions_to_ban = [[[(i + offset[0], j + offset[1]) for offset in offsets if 0 <= i + offset[0] < size and 0 <= j + offset[1] < size] for i in range(size)] for j in range(size)]
 
     satisfy(
         # Write your constraints here
-        [amazons[0][i] == placed_amazons[i][0] for i in range(len(placed_amazons))],
-        [amazons[1][i] == placed_amazons[i][1] for i in range(len(placed_amazons))],
-        [abs(amazons[0][i] - placed_amazons[i][0]) != abs(amazons[1][i] - placed_amazons[i][1]) for i in range(len(placed_amazons))],
-        [abs(amazons[0][i] - placed_amazons[i][0])*2 != abs(amazons[1][i] - placed_amazons[i][1])*3 for i in range(len(placed_amazons))],
-        [abs(amazons[0][i] - placed_amazons[i][0])*3 != abs(amazons[1][i] - placed_amazons[i][1])*2 for i in range(len(placed_amazons))],
-        [abs(amazons[0][i] - placed_amazons[i][0])*1 != abs(amazons[1][i] - placed_amazons[i][1])*4 for i in range(len(placed_amazons))],
-        [abs(amazons[0][i] - placed_amazons[i][0])*4 != abs(amazons[1][i] - placed_amazons[i][1])*1 for i in range(len(placed_amazons))],
-        # ROWS
-        # Amazon_X_i != Amazon_X_j
-        AllDifferent(amazons[0]),
-        # COLUMNS
-        # Amazon_Y_i != Amazon_Y_j
-        AllDifferent(amazons[1]),
-        # DIAGONALS
-        # abs(Amazon_X_i - Amazon_X_j) != abs(Amazon_Y_i  - Amazon_Y_j)
-        [abs(amazons[0][i] - amazons[0][j]) != abs(amazons[1][i] - amazons[1][j]) for i in range(size) for j in range(size) if i != j],
-        # 3x2 MOVES
-        # abs(Amazon_X_i - Amazon_X_j) != 3 and abs(Amazon_Y_i - Amazon_Y_j) != 2
-        [abs(amazons[0][i] - amazons[0][j])*2 != abs(amazons[1][i] - amazons[1][j])*3 for i in range(size) for j in range(size) if i != j],
-        [abs(amazons[0][i] - amazons[0][j])*3 != abs(amazons[1][i] - amazons[1][j])*2 for i in range(size) for j in range(size) if i != j],
-        # 4x1 MOVES
-        # abs(Amazon_X_i - Amazon_X_j) != 4 and abs(Amazon_Y_i - Amazon_Y_j) != 1
-        [abs(amazons[0][i] - amazons[0][j])*1 != abs(amazons[1][i] - amazons[1][j])*4 for i in range(size) for j in range(size) if i != j],
-        [abs(amazons[0][i] - amazons[0][j])*4 != abs(amazons[1][i] - amazons[1][j])*1 for i in range(size) for j in range(size) if i != j]
-        )
-    """
-    ,
-        # CIRCLE
-        # (Amazon_X_i - Amazon_X_j)^2 + (Amazon_Y_i - Amazon_Y_j)^2 < 3.5^2 and > 4.2^2
-        [Or(scale*((amazons[0][i] - amazons[0][j]) ** 2 + (amazons[1][i] - amazons[1][j]) ** 2) < int(scale*(3.5**2)), 
-            scale*((amazons[0][i] - amazons[0][j]) ** 2 + (amazons[1][i] - amazons[1][j]) ** 2) > int(scale*(4.2**2))) for i in range(size) for j in range(size) if i != j]"""
-
-    if False:
-        for center_x in range(size):
-            for center_y in range(size):
-                for x in range(size):
-                    for y in range(size):
-                        distance_squared = (x - center_x) ** 2 + (y - center_y) ** 2
-                        condition_1 = scale * distance_squared < int(scale * (3.5 ** 2))
-                        condition_2 = scale * distance_squared > int(scale * (4.2 ** 2))
-                        condition_3 = abs(x - center_x) != abs(y - center_y)
-                        condition_4 = x != center_x and y != center_y
-                        if (condition_1 or condition_2) and condition_3 and condition_4:
-                            print("⭕", end="") 
-                        else:
-                            print("💠", end="")
-                    print()  # Move to the next line after printing each row
-                print()
-
+        # Already placed amazons
+        [grid[i][j] == 1 for i, j in placed_amazons],
+        # Each line and column must contain at most one amazon
+        [Sum(grid[i]) == 1 for i in range(size)],
+        [Sum(grid[:,i]) == 1 for i in range(size)],
+        # Each diagonal must contain at most one amazon
+        [Sum(grid[i,j] for i in range(size) for j in range(size) if abs(i - k) == abs(j - l) and i != k and j != l) <= 2 for k in range(size) for l in range(size)],
+        # Each 3x2 and 4x1 moves must NEVER contain an amazon
+        [Sum(grid[i][j] == 0 for i, j in all_positions_to_ban[y][x]) == 0 for x in range(size) for y in range(size)]        
+     )
     
+    if True:     
+        # representation of the last constrain
+        num_boards = 6
+        for b in range(0, size*size, num_boards):
+            for i in range(size):
+                for x in range(b, min(b + num_boards, size*size)):
+                    y, x = divmod(x, size)
+                    for j in range(size):
+                        if (i, j) in all_positions_to_ban[y][x]:
+                            print('🔴', end="")
+                        elif abs(i - x) == abs(j - y):
+                            print('🔵', end="")
+                        elif i == x or j == y:
+                            print('🟢', end="")
+                        else:
+                            print('⬜', end="")
+                    print(" ", end="")  # print a space between boards
+                print()  # print a newline after each row of boards
+            print()  # print a newline after each set of 4 boards
+
     # output[i][j] == 1 iff there is an amazon at row i and column j
     # otherwise output[i][j] == 0
     output = [[0 for _ in range(size)] for _ in range(size)]
@@ -243,11 +223,12 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
         status = True
         # Fill the output grid with solution
         for i in range(size):
-            output[amazons[0][i].value][amazons[1][i].value] = 1
+            for j in range(size):
+                output[i][j] = grid[i][j].value
     else:
         status = False
 
-    if False:
+    if True:
         for i in range(size):
             for j in range(size):
                 if output[i][j] == 1:
