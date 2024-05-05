@@ -172,29 +172,55 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
     """
 
     # Create the variables here
-    # Array of variables representing the position of the amazons, if an amazon is placed at position i, j then amazons[0][i] == i and amazons[1][i] == j
-    grid = VarArray(size=(size, size), dom={0, 1})
+    # Array of positions of the amazons
+    amazons = VarArray(size=(2, size), dom=range(size))
 
-    offsets_4x1 = [(i, j) for i in [-4, 4] for j in [-1, 1]] + [(i, j) for i in [-1, 1] for j in [-4, 4]]
-    offsets_3x2 = [(i, j) for i in [-3, 3] for j in [-2, 2]] + [(i, j) for i in [-2, 2] for j in [-3, 3]]
-    offsets = offsets_4x1 + offsets_3x2
+    #offsets_4x1 = [(i, j) for i in [-4, 4] for j in [-1, 1]] + [(i, j) for i in [-1, 1] for j in [-4, 4]]
+    #offsets_3x2 = [(i, j) for i in [-3, 3] for j in [-2, 2]] + [(i, j) for i in [-2, 2] for j in [-3, 3]]
+    #offsets = offsets_4x1 + offsets_3x2
 
-    all_positions_to_ban = [[[(i + offset[0], j + offset[1]) for offset in offsets if 0 <= i + offset[0] < size and 0 <= j + offset[1] < size] for i in range(size)] for j in range(size)]
+    #all_positions_to_ban = [[[(i + offset[0], j + offset[1]) for offset in offsets if 0 <= i + offset[0] < size and 0 <= j + offset[1] < size] for i in range(size)] for j in range(size)]
+
+    #    circle_function = lambda i,j, x,y: (((i - x)**2 + (j - y)**2) > 10) * (((i - x)**2 + (j - y)**2) < 18)
+    circle_function = lambda i,j, x,y: (((i - x)**2 + (j - y)**2) > 10) * (((i - x)**2 + (j - y)**2) < 18)
 
     satisfy(
         # Write your constraints here
         # Already placed amazons
-        [grid[i][j] == 1 for i, j in placed_amazons],
+        [amazons[0][id] == placed_amazons[id][0] for id in range(len(placed_amazons))],
+        [amazons[1][id] == placed_amazons[id][1] for id in range(len(placed_amazons))],
         # Each line and column must contain at most one amazon
-        [Sum(grid[i]) == 1 for i in range(size)],
-        [Sum(grid[:,i]) == 1 for i in range(size)],
+        AllDifferent([amazons[0][i] for i in range(size)]),
+        AllDifferent([amazons[1][i] for i in range(size)]),
         # Each diagonal must contain at most one amazon
-        [Sum(grid[i,j] for i in range(size) for j in range(size) if abs(i - k) == abs(j - l) and i != k and j != l) <= 2 for k in range(size) for l in range(size)],
+        [Sum([abs(amazons[0][i] - amazons[0][j]) == abs(amazons[1][i] - amazons[1][j]) for j in range(size)]) <= 1 for i in range(size)],   
         # Each 3x2 and 4x1 moves must NEVER contain an amazon
-        [Sum(grid[i][j] == 0 for i, j in all_positions_to_ban[y][x]) == 0 for x in range(size) for y in range(size)]        
+        [Sum([
+            circle_function(amazons[0][i], amazons[1][i], x, y) for x in amazons[0] for y in amazons[1]
+        ]) == 0 for i in range(size)]
      )
-    
-    if True:     
+
+    if False:     
+        # representation of the last constrain
+        num_boards = 6
+        for b in range(0, size*size, num_boards):
+            for i in range(size):
+                for x in range(b, min(b + num_boards, size*size)):
+                    y, x = divmod(x, size)
+                    for j in range(size):
+                        if circle_function(i, j, x, y):
+                            print('🔴', end="")
+                        elif abs(i - x) == abs(j - y):
+                            print('🔵', end="")
+                        elif i == x or j == y:
+                            print('🟢', end="")
+                        else:
+                            print('⬜', end="")
+                    print(" ", end="")  # print a space between boards
+                print()  # print a newline after each row of boards
+            print()  # print a newline after each set of 4 boards
+
+    if False:     
         # representation of the last constrain
         num_boards = 6
         for b in range(0, size*size, num_boards):
@@ -223,8 +249,7 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
         status = True
         # Fill the output grid with solution
         for i in range(size):
-            for j in range(size):
-                output[i][j] = grid[i][j].value
+            output[amazons[0][i].value][amazons[1][i].value] = 1
     else:
         status = False
 
