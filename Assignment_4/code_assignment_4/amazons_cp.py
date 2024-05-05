@@ -175,15 +175,8 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
     # Array of positions of the amazons
     amazons = VarArray(size=(2, size), dom=range(size))
 
-    #offsets_4x1 = [(i, j) for i in [-4, 4] for j in [-1, 1]] + [(i, j) for i in [-1, 1] for j in [-4, 4]]
-    #offsets_3x2 = [(i, j) for i in [-3, 3] for j in [-2, 2]] + [(i, j) for i in [-2, 2] for j in [-3, 3]]
-    #offsets = offsets_4x1 + offsets_3x2
-
-    #all_positions_to_ban = [[[(i + offset[0], j + offset[1]) for offset in offsets if 0 <= i + offset[0] < size and 0 <= j + offset[1] < size] for i in range(size)] for j in range(size)]
-
-    #    circle_function = lambda i,j, x,y: (((i - x)**2 + (j - y)**2) > 10) * (((i - x)**2 + (j - y)**2) < 18)
+    # Function that defines the circle of radius 3.2 to 4.8 around a position (x, y)
     circle_function = lambda i,j, x,y: (((i - x)**2 + (j - y)**2) > 10) * (((i - x)**2 + (j - y)**2) < 18)
-
     satisfy(
         # Write your constraints here
         # Already placed amazons
@@ -196,7 +189,7 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
         [Sum([abs(amazons[0][i] - amazons[0][j]) == abs(amazons[1][i] - amazons[1][j]) for j in range(size)]) <= 1 for i in range(size)],   
         # Each 3x2 and 4x1 moves must NEVER contain an amazon
         [Sum([
-            circle_function(amazons[0][i], amazons[1][i], x, y) for x in amazons[0] for y in amazons[1]
+            circle_function(amazons[0][i], amazons[1][i], x, y) for x,y in [(amazons[0][j], amazons[1][j]) for j in range(size)]
         ]) == 0 for i in range(size)]
      )
 
@@ -209,26 +202,6 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
                     y, x = divmod(x, size)
                     for j in range(size):
                         if circle_function(i, j, x, y):
-                            print('🔴', end="")
-                        elif abs(i - x) == abs(j - y):
-                            print('🔵', end="")
-                        elif i == x or j == y:
-                            print('🟢', end="")
-                        else:
-                            print('⬜', end="")
-                    print(" ", end="")  # print a space between boards
-                print()  # print a newline after each row of boards
-            print()  # print a newline after each set of 4 boards
-
-    if False:     
-        # representation of the last constrain
-        num_boards = 6
-        for b in range(0, size*size, num_boards):
-            for i in range(size):
-                for x in range(b, min(b + num_boards, size*size)):
-                    y, x = divmod(x, size)
-                    for j in range(size):
-                        if (i, j) in all_positions_to_ban[y][x]:
                             print('🔴', end="")
                         elif abs(i - x) == abs(j - y):
                             print('🔵', end="")
@@ -253,7 +226,7 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
     else:
         status = False
 
-    if True:
+    if False:
         for i in range(size):
             for j in range(size):
                 if output[i][j] == 1:
