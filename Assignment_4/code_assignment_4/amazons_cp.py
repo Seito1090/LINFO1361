@@ -177,8 +177,6 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
 
     # Function that defines the circle of radius 3.2 to 4.8 around a position (x, y)
     circle_function = lambda i,j, x,y: (((i - x)**2 + (j - y)**2) > 10) * (((i - x)**2 + (j - y)**2) < 18)
-    # Precompute the values for the X coordinates
-    circle_buffer = [lambda j,y: circle_function(i, j, x, y) for x in range(size) for i in range(size)]
     satisfy(
         # Write your constraints here
         # Already placed amazons

@@ -1,0 +1,7 @@
+c Choco 231113
+v <instantiation id='sol1' type='solution' ><list>amazons[0] amazons[1] amazons[2] amazons[3] amazons[4] amazons[5] amazons[6] amazons[7] amazons[8] amazons[9] amazons[10] amazons[11] amazons[12] amazons[13] amazons[14] amazons[15] amazons[16] amazons[17] amazons[18] amazons[19] amazons[20] amazons[21] amazons[22] amazons[23] amazons[24] </list><values>0 5 18 12 6 8 13 21 4 22 11 23 17 10 3 1 24 15 9 7 2 20 14 16 19 </values></instantiation>
+
+s SATISFIABLE
+v <instantiation id='sol1' type='solution' ><list>amazons[0] amazons[1] amazons[2] amazons[3] amazons[4] amazons[5] amazons[6] amazons[7] amazons[8] amazons[9] amazons[10] amazons[11] amazons[12] amazons[13] amazons[14] amazons[15] amazons[16] amazons[17] amazons[18] amazons[19] amazons[20] amazons[21] amazons[22] amazons[23] amazons[24] </list><values>0 5 18 12 6 8 13 21 4 22 11 23 17 10 3 1 24 15 9 7 2 20 14 16 19 </values></instantiation>
+d FOUND SOLUTIONS 1
+
