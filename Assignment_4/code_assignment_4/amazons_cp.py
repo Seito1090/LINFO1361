@@ -173,23 +173,23 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
 
     # Create the variables here
     # Array of positions of the amazons
-    amazons = VarArray(size=(2, size), dom=range(size))
+    amazons = VarArray(size=size, dom=range(size))
 
     # Function that defines the circle of radius 3.2 to 4.8 around a position (x, y)
     circle_function = lambda i,j, x,y: (((i - x)**2 + (j - y)**2) > 10) * (((i - x)**2 + (j - y)**2) < 18)
+    # Precompute the values for the X coordinates
+    circle_buffer = [lambda j,y: circle_function(i, j, x, y) for x in range(size) for i in range(size)]
     satisfy(
         # Write your constraints here
         # Already placed amazons
-        [amazons[0][id] == placed_amazons[id][0] for id in range(len(placed_amazons))],
-        [amazons[1][id] == placed_amazons[id][1] for id in range(len(placed_amazons))],
+        [amazons[x] == y for x, y in placed_amazons],
         # Each line and column must contain at most one amazon
-        AllDifferent([amazons[0][i] for i in range(size)]),
-        AllDifferent([amazons[1][i] for i in range(size)]),
+        AllDifferent(amazons),
         # Each diagonal must contain at most one amazon
-        [Sum([abs(amazons[0][i] - amazons[0][j]) == abs(amazons[1][i] - amazons[1][j]) for j in range(size)]) <= 1 for i in range(size)],   
+        [Sum([abs(i - j) == abs(amazons[i] - amazons[j]) for j in range(size)]) <= 1 for i in range(size)],   
         # Each 3x2 and 4x1 moves must NEVER contain an amazon
         [Sum([
-            circle_function(amazons[0][i], amazons[1][i], x, y) for x,y in [(amazons[0][j], amazons[1][j]) for j in range(size)]
+            circle_function(i, amazons[i], x, y) for x,y in [(j, amazons[j]) for j in range(size)]
         ]) == 0 for i in range(size)]
      )
 
@@ -222,7 +222,7 @@ def amazons_cp(size: int, placed_amazons: list[(int, int)]) -> (bool, list[list[
         status = True
         # Fill the output grid with solution
         for i in range(size):
-            output[amazons[0][i].value][amazons[1][i].value] = 1
+            output[i][amazons[i].value] = 1
     else:
         status = False
 
