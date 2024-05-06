@@ -3,8 +3,8 @@
 \usepackage{hyperref}
 
 \assignment{4}
-\group{...}
-\students{..........}{..........}
+\group{1 (Moodle), 39 (INGInious)}
+\students{Victor Carballes Cordoba (NOMA : 34472100)}{Krystian Targonski (NOMA : 42942000)}
 
 \begin{document}
 
@@ -18,10 +18,10 @@ at \url{https://www.pycsp.org/documentation/constraints/} to find the definition
 \end{enumerate}
 
 \begin{answers}[4cm]
-Constraints \#1: \\
-Constraints \#2: \\
-Constraints \#3: \\
-Constraints \#4: \\
+Constraints \#1:  Only one amazon in each row\\
+Constraints \#2:  Only one amazon in each column\\
+Constraints \#3:  The sum of all truth values in both diagonals is equal to 1\\
+Constraints \#4:  The sum of all  truth values in a circle, is between 3.2 and 4.8 units, representing all 3x2 and 4x1 moves (combined with a few of the other constraints, that is why this works).
 \end{answers}
 
 
@@ -39,6 +39,9 @@ Constraints \#4: \\
 
 \begin{answers}[6cm]
 
+First set of variables, is the simple NxN grid, it has a domain of {0,1}, and is quite easy to understand how it all operates. But this one involves a lot of checks, but at least the domain is small.
+The second representation is harder to understand, and that is to use the array variables, with the index as X, and the value as Y. This means that you can even remove one of the constraints from the previous question. Its dimension is then the range between 0 and N. The final approach is this one.
+
 \end{answers}
 
 \begin{enumerate}
@@ -50,7 +53,16 @@ Constraints \#4: \\
 \end{enumerate}
 
 \begin{answers}[10cm]
-
+\begin{enumerate}
+    \item The values at index x, must be value y for all placed amazons at position x,y
+    \item All the variables must be different (different Y)
+    \item For each amazon, its diagonals must only contain one piece, represented by the sum of the difference $\sum_{x_{other}}^N(abs(x_{self} - x_{other}) == abs(amazon_Y[x_{self}] - amazon_Y[x_{other}])) = 1\; \forall x_{self}$
+    \item For each amazon, no amazon must be in the circle
+    \begin{enumerate}
+        \item $\sum_{x_{other}}^N(10 < (x_{self} - x_{other})^2 + (amazon_Y[x_{self}] - amazon_Y[x_{other}])^2 < 18) = 0\; \forall x_{self}$
+        \item For implementation reasons, its enfeasable to use float values in the conditions, so after testing a bit, these values worked flawlessly instead of the $3.2^2$ and $4.8^2$ that are harder to make.
+    \end{enumerate}
+\end{enumerate}
 \end{answers}
 
 \begin{enumerate}
