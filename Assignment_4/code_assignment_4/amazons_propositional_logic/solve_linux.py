@@ -183,6 +183,7 @@ if __name__ == "__main__":
     size, fixed_amazons = read_instance(sys.argv[1])
     n_rows = n_columns = size
     expression = get_expression(size, fixed_amazons)
+    print("Number of clauses:", len(expression))
     nb_vars = n_rows * n_columns
     is_sat, solution = minisat.minisat(nb_vars, [clause.minisat_str() for clause in expression], './minisatLinux')
 
